@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Project - Construction Tracker</title>
+</head>
+<body>
+    <main>
+        <h1>Construction Tracker</h1>
+
+        <h2>Create New Project</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+            <div>
+                <label for="name">Project Name</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    maxlength="150"
+                >
+            </div>
+
+            <br>
+
+            <div>
+                <label for="client_name">Client Name</label>
+                <input
+                    type="text"
+                    id="client_name"
+                    name="client_name"
+                    required
+                    maxlength="120"
+                >
+            </div>
+
+            <br>
+
+            <div>
+                <label for="location">Project Location</label>
+                <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    required
+                    maxlength="200"
+                >
+            </div>
+
+            <br>
+
+            <div>
+                <label for="start_date">Start Date</label>
+                <input
+                    type="date"
+                    id="start_date"
+                    name="start_date"
+                    required
+                >
+            </div>
+
+            <br>
+
+            <div>
+                <label for="expected_completion_date">
+                    Expected Completion Date
+                </label>
+                <input
+                    type="date"
+                    id="expected_completion_date"
+                    name="expected_completion_date"
+                    required
+                >
+            </div>
+
+            <br>
+
+            <div>
+                <label for="total_budget">Total Budget (₹)</label>
+                <input
+                    type="number"
+                    id="total_budget"
+                    name="total_budget"
+                    min="0.01"
+                    step="0.01"
+                    required
+                >
+            </div>
+
+            <br>
+
+            <div>
+                <label for="status">Project Status</label>
+                <select id="status" name="status" required>
+                    <option value="planning">Planning</option>
+                    <option value="active">Active</option>
+                    <option value="on_hold">On Hold</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <br>
+
+            <button type="submit">Create Project</button>
+
+        </form>
+
+        <p>
+            <a href="{{ url_for('projects.list_projects') }}">
+                Back to Projects
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('main.dashboard') }}">
+                Back to Dashboard
+            </a>
+        </p>
+    </main>
+</body>
+</html>

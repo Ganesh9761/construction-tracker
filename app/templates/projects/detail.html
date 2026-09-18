@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.name }} - Construction Tracker</title>
+</head>
+<body>
+    <main>
+        <h1>Construction Tracker</h1>
+
+        <h2>{{ project.name }}</h2>
+
+        <p>
+            <strong>Status:</strong>
+            {{ project.status|replace("_", " ")|title }}
+        </p>
+
+        <hr>
+
+        <h3>Project Information</h3>
+
+        <table border="1">
+            <tr>
+                <th>Project Name</th>
+                <td>{{ project.name }}</td>
+            </tr>
+
+            <tr>
+                <th>Client</th>
+                <td>{{ project.client_name }}</td>
+            </tr>
+
+            <tr>
+                <th>Location</th>
+                <td>{{ project.location }}</td>
+            </tr>
+
+            <tr>
+                <th>Start Date</th>
+                <td>{{ project.start_date }}</td>
+            </tr>
+
+            <tr>
+                <th>Expected Completion</th>
+                <td>{{ project.expected_completion_date }}</td>
+            </tr>
+
+            <tr>
+                <th>Total Budget</th>
+                <td>₹{{ "{:,.2f}".format(project.total_budget) }}</td>
+            </tr>
+
+            <tr>
+                <th>Status</th>
+                <td>{{ project.status|replace("_", " ")|title }}</td>
+            </tr>
+
+            <tr>
+                <th>Created By</th>
+                <td>{{ project.creator.username }}</td>
+            </tr>
+
+            <tr>
+                <th>Created At</th>
+                <td>{{ project.created_at }}</td>
+            </tr>
+
+            <tr>
+                <th>Last Updated</th>
+                <td>{{ project.updated_at }}</td>
+            </tr>
+        </table>
+
+        <hr>
+
+        <h3>Construction Progress</h3>
+
+        <p>
+            No construction phases have been added yet.
+        </p>
+
+        <h3>Financial Summary</h3>
+
+        <table border="1">
+            <tr>
+                <th>Allocated Budget</th>
+                <td>₹{{ "{:,.2f}".format(project.total_budget) }}</td>
+            </tr>
+
+            <tr>
+                <th>Actual Cost</th>
+                <td>₹0.00</td>
+            </tr>
+
+            <tr>
+                <th>Remaining Budget</th>
+                <td>₹{{ "{:,.2f}".format(project.total_budget) }}</td>
+            </tr>
+
+            <tr>
+                <th>Budget Utilization</th>
+                <td>0.00%</td>
+            </tr>
+        </table>
+
+        <hr>
+
+        <h3>Project Modules</h3>
+
+        <ul>
+            <li>Construction Phases — Coming next</li>
+            <li>Expense Management — Coming later</li>
+            <li>Progress Tracking — Coming later</li>
+            <li>Financial Analytics — Coming later</li>
+            <li>Reports — Coming later</li>
+        </ul>
+
+        <p>
+            <a href="{{ url_for('projects.list_projects') }}">
+                Back to Projects
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('main.dashboard') }}">
+                Back to Dashboard
+            </a>
+        </p>
+    </main>
+</body>
+</html>
