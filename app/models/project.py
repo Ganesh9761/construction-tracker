@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime, timezone
 
 from app.extensions import db
 
@@ -15,19 +15,40 @@ PROJECT_STATUSES = {
 class Project(db.Model):
     __tablename__ = "projects"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+    )
 
-    name = db.Column(db.String(150), nullable=False)
+    name = db.Column(
+        db.String(150),
+        nullable=False,
+    )
 
-    client_name = db.Column(db.String(120), nullable=False)
+    client_name = db.Column(
+        db.String(120),
+        nullable=False,
+    )
 
-    location = db.Column(db.String(200), nullable=False)
+    location = db.Column(
+        db.String(200),
+        nullable=False,
+    )
 
-    start_date = db.Column(db.Date, nullable=False)
+    start_date = db.Column(
+        db.Date,
+        nullable=False,
+    )
 
-    expected_completion_date = db.Column(db.Date, nullable=False)
+    expected_completion_date = db.Column(
+        db.Date,
+        nullable=False,
+    )
 
-    total_budget = db.Column(db.Numeric(14, 2), nullable=False)
+    total_budget = db.Column(
+        db.Numeric(14, 2),
+        nullable=False,
+    )
 
     status = db.Column(
         db.String(30),
@@ -44,14 +65,14 @@ class Project(db.Model):
     created_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
     )
 
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     creator = db.relationship(

@@ -1,22 +1,20 @@
-from datetime import datetime
-from decimal import Decimal, InvalidOperation
+from datetime import datetime, timezone
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
+from flask_wtf import FlaskForm
+from wtforms import (
+    DateField,
+    DecimalField,
+    SelectField,
+    StringField,
+    SubmitField,
+)
+from wtforms.validators import DataRequired, NumberRange, ValidationError
 
 from app.extensions import db
 from app.models import Project
-from app.models.project import PROJECT_STATUSES
-from app.services.expense_service import (
-    get_expense_category_summary,
-    get_monthly_expense_summary,
-)
-from app.services.project_finance_service import (
-    get_project_financial_summary,
-    get_project_phase_financials,
-    get_project_progress_summary,
-)
-from app.services.project_service import create_project
+from app.services.audit_service import create_audit_log
 
 
 projects_bp = Blueprint(
@@ -24,6 +22,71 @@ projects_bp = Blueprint(
     __name__,
     url_prefix="/projects",
 )
+
+
+class ProjectForm(FlaskForm):
+    name = StringField(
+        "Project Name",
+        validators=[DataRequired()],
+    )
+
+    client_name = StringField(
+        "Client Name",
+        validators=[DataRequired()],
+    )
+
+    location = StringField(
+        "Location",
+        validators=[DataRequired()],
+    )
+
+    start_date = DateField(
+        "Start Date",
+        validators=[DataRequired()],
+        format="%Y-%m-%d",
+    )
+
+    expected_completion_date = DateField(
+        "Expected Completion Date",
+        validators=[DataRequired()],
+        format="%Y-%m-%d",
+    )
+
+    total_budget = DecimalField(
+        "Total Budget",
+        validators=[
+            DataRequired(),
+            NumberRange(
+                min=0,
+                message="Budget must be zero or greater.",
+            ),
+        ],
+        places=2,
+    )
+
+    status = SelectField(
+        "Status",
+        choices=[
+            ("planning", "Planning"),
+            ("active", "Active"),
+            ("on_hold", "On Hold"),
+            ("completed", "Completed"),
+            ("cancelled", "Cancelled"),
+        ],
+        validators=[DataRequired()],
+    )
+
+    submit = SubmitField("Save Project")
+
+    def validate_expected_completion_date(self, field):
+        if (
+            self.start_date.data
+            and field.data
+            and field.data < self.start_date.data
+        ):
+            raise ValidationError(
+                "Expected completion date cannot be before the start date."
+            )
 
 
 @projects_bp.route("/")
@@ -40,58 +103,123 @@ def list_projects():
     )
 
 
-@projects_bp.route("/create", methods=["GET", "POST"])
+@projects_bp.route("/new", methods=["GET", "POST"])
 @login_required
 def create():
-    if current_user.role not in {"admin", "project_manager"}:
-        return "Access denied.", 403
+    form = ProjectForm()
 
-    if request.method == "POST":
-        name = request.form.get("name", "")
-        client_name = request.form.get("client_name", "")
-        location = request.form.get("location", "")
-        start_date_text = request.form.get("start_date", "")
-        expected_completion_date_text = request.form.get(
-            "expected_completion_date",
-            "",
+    if form.validate_on_submit():
+        now = datetime.now(timezone.utc)
+
+        project = Project(
+            name=form.name.data.strip(),
+            client_name=form.client_name.data.strip(),
+            location=form.location.data.strip(),
+            start_date=form.start_date.data,
+            expected_completion_date=form.expected_completion_date.data,
+            total_budget=form.total_budget.data,
+            status=form.status.data,
+            created_by=current_user.id,
+            created_at=now,
+            updated_at=now,
         )
-        total_budget_text = request.form.get("total_budget", "")
-        status = request.form.get("status", "planning")
 
-        try:
-            start_date = datetime.strptime(
-                start_date_text,
-                "%Y-%m-%d",
-            ).date()
+        db.session.add(project)
+        db.session.flush()
 
-            expected_completion_date = datetime.strptime(
-                expected_completion_date_text,
-                "%Y-%m-%d",
-            ).date()
+        create_audit_log(
+            user_id=current_user.id,
+            action="create",
+            entity_type="project",
+            entity_id=project.id,
+            description=(
+                f"Created project "
+                f"'{project.name}'."
+            ),
+        )
 
-            total_budget = Decimal(total_budget_text)
-
-            project = create_project(
-                name=name,
-                client_name=client_name,
-                location=location,
-                start_date=start_date,
-                expected_completion_date=expected_completion_date,
-                total_budget=total_budget,
-                created_by=current_user.id,
-                status=status,
-            )
-
-        except (ValueError, InvalidOperation) as error:
-            flash(str(error), "error")
-
-            return render_template(
-                "projects/create.html",
-                statuses=sorted(PROJECT_STATUSES),
-            ), 400
+        db.session.commit()
 
         flash(
-            f"Project #{project.id} created successfully.",
+            "Project created successfully.",
+            "success",
+        )
+
+        return redirect(
+            url_for(
+                "projects.list_projects"
+            )
+        )
+
+    return render_template(
+        "projects/form.html",
+        form=form,
+        title="Create Project",
+    )
+
+
+@projects_bp.route("/<int:project_id>")
+@login_required
+def detail(project_id):
+    project = db.session.get(
+        Project,
+        project_id,
+    )
+
+    if project is None:
+        return "Project not found.", 404
+
+    return render_template(
+        "projects/detail.html",
+        project=project,
+    )
+
+
+@projects_bp.route(
+    "/<int:project_id>/edit",
+    methods=["GET", "POST"],
+)
+@login_required
+def edit(project_id):
+    project = db.session.get(
+        Project,
+        project_id,
+    )
+
+    if project is None:
+        return "Project not found.", 404
+
+    form = ProjectForm(obj=project)
+
+    if form.validate_on_submit():
+        old_name = project.name
+
+        project.name = form.name.data.strip()
+        project.client_name = form.client_name.data.strip()
+        project.location = form.location.data.strip()
+        project.start_date = form.start_date.data
+        project.expected_completion_date = (
+            form.expected_completion_date.data
+        )
+        project.total_budget = form.total_budget.data
+        project.status = form.status.data
+        project.updated_at = datetime.now(timezone.utc)
+
+        create_audit_log(
+            user_id=current_user.id,
+            action="update",
+            entity_type="project",
+            entity_id=project.id,
+            description=(
+                f"Updated project "
+                f"'{old_name}'."
+            ),
+        )
+
+        db.session.commit()
+
+        flash(
+            "Project updated successfully.",
             "success",
         )
 
@@ -103,45 +231,8 @@ def create():
         )
 
     return render_template(
-        "projects/create.html",
-        statuses=sorted(PROJECT_STATUSES),
-    )
-
-
-@projects_bp.route("/<int:project_id>")
-@login_required
-def detail(project_id):
-    project = db.session.get(Project, project_id)
-
-    if project is None:
-        return "Project not found.", 404
-
-    financial_summary = get_project_financial_summary(
-        project_id
-    )
-
-    phase_financials = get_project_phase_financials(
-        project_id
-    )
-
-    expense_category_summary = get_expense_category_summary(
-        project_id
-    )
-
-    monthly_expense_summary = get_monthly_expense_summary(
-        project_id
-    )
-
-    progress_summary = get_project_progress_summary(
-        project_id
-    )
-
-    return render_template(
-        "projects/detail.html",
+        "projects/form.html",
+        form=form,
+        title="Edit Project",
         project=project,
-        financial_summary=financial_summary,
-        phase_financials=phase_financials,
-        expense_category_summary=expense_category_summary,
-        monthly_expense_summary=monthly_expense_summary,
-        progress_summary=progress_summary,
     )

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.extensions import db
 
@@ -23,16 +23,25 @@ class Phase(db.Model):
         index=True,
     )
 
-    name = db.Column(db.String(120), nullable=False)
+    name = db.Column(
+        db.String(120),
+        nullable=False,
+    )
 
-    description = db.Column(db.Text, nullable=True)
+    description = db.Column(
+        db.Text,
+        nullable=True,
+    )
 
     allocated_budget = db.Column(
         db.Numeric(14, 2),
         nullable=False,
     )
 
-    start_date = db.Column(db.Date, nullable=False)
+    start_date = db.Column(
+        db.Date,
+        nullable=False,
+    )
 
     expected_completion_date = db.Column(
         db.Date,
@@ -54,14 +63,14 @@ class Phase(db.Model):
     created_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
     )
 
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     project = db.relationship(
