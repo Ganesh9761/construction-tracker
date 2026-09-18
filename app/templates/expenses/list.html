@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ project.name }} - Expenses</title>
+</head>
+
+<body>
+
+    <main>
+
+        <h1>Construction Tracker</h1>
+
+        <h2>Expense Management</h2>
+
+        <p>
+            <strong>Project:</strong>
+            {{ project.name }}
+        </p>
+
+        <hr>
+
+        <p>
+            <a href="{{ url_for('expenses.create', project_id=project.id) }}">
+                Add New Expense
+            </a>
+        </p>
+
+        <h3>Expense Records</h3>
+
+        {% if expenses %}
+
+        <table border="1" cellpadding="8" cellspacing="0">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Phase</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Vendor</th>
+                    <th>Payment Status</th>
+                    <th>Created By</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for expense in expenses %}
+
+                <tr>
+                    <td>{{ expense.id }}</td>
+
+                    <td>
+                        {{ expense.expense_date }}
+                    </td>
+
+                    <td>
+                        {{ expense.phase.name }}
+                    </td>
+
+                    <td>
+                        {{ expense.category|replace("_", " ")|title }}
+                    </td>
+
+                    <td>
+                        {{ expense.description }}
+                    </td>
+
+                    <td>
+                        ₹{{ "{:,.2f}".format(expense.amount) }}
+                    </td>
+
+                    <td>
+                        {{ expense.vendor_name }}
+                    </td>
+
+                    <td>
+                        {{ expense.payment_status|replace("_", " ")|title }}
+                    </td>
+
+                    <td>
+                        {{ expense.creator.username }}
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <p>
+            No expenses have been recorded for this project yet.
+        </p>
+
+        {% endif %}
+
+        <hr>
+
+        <p>
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
+                Back to Project
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('phases.list_phases', project_id=project.id) }}">
+                View Construction Phases
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('main.dashboard') }}">
+                Back to Dashboard
+            </a>
+        </p>
+
+    </main>
+
+</body>
+</html>
