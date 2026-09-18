@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {{ phase.name }} - Progress History
+    </title>
+</head>
+
+<body>
+
+    <main>
+
+        <h1>Construction Tracker</h1>
+
+        <h2>Progress Tracking</h2>
+
+        <p>
+            <strong>Project:</strong>
+            {{ project.name }}
+        </p>
+
+        <p>
+            <strong>Phase:</strong>
+            {{ phase.name }}
+        </p>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+
+                {% for category, message in messages %}
+
+                    <p>
+                        <strong>{{ category|title }}:</strong>
+                        {{ message }}
+                    </p>
+
+                {% endfor %}
+
+            {% endif %}
+        {% endwith %}
+
+        <h3>Current Progress</h3>
+
+        <table border="1" cellpadding="8" cellspacing="0">
+
+            <tr>
+                <th>Completion</th>
+                <td>
+                    {{ "{:.2f}".format(
+                        phase.completion_percentage
+                    ) }}%
+                </td>
+            </tr>
+
+            <tr>
+                <th>Status</th>
+                <td>
+                    {{ phase.status|replace("_", " ")|title }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Phase Budget</th>
+                <td>
+                    ₹{{ "{:,.2f}".format(
+                        phase.allocated_budget
+                    ) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Start Date</th>
+                <td>
+                    {{ phase.start_date }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Expected Completion</th>
+                <td>
+                    {{ phase.expected_completion_date }}
+                </td>
+            </tr>
+
+        </table>
+
+        <hr>
+
+        <p>
+            <a href="{{ url_for(
+                'progress.create',
+                project_id=project.id,
+                phase_id=phase.id
+            ) }}">
+                Add Progress Update
+            </a>
+        </p>
+
+        <h3>Progress History</h3>
+
+        {% if progress_updates %}
+
+            <table border="1" cellpadding="8" cellspacing="0">
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Date & Time</th>
+                        <th>Completion</th>
+                        <th>Notes</th>
+                        <th>Updated By</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for update in progress_updates %}
+
+                        <tr>
+
+                            <td>
+                                {{ update.id }}
+                            </td>
+
+                            <td>
+                                {{ update.created_at }}
+                            </td>
+
+                            <td>
+                                {{ "{:.2f}".format(
+                                    update.completion_percentage
+                                ) }}%
+                            </td>
+
+                            <td>
+                                {{ update.notes or "-" }}
+                            </td>
+
+                            <td>
+                                {{ update.updater.username }}
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        {% else %}
+
+            <p>
+                No progress updates have been recorded
+                for this phase yet.
+            </p>
+
+        {% endif %}
+
+        <hr>
+
+        <p>
+            <a href="{{ url_for(
+                'phases.list_phases',
+                project_id=project.id
+            ) }}">
+                Back to Construction Phases
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for(
+                'projects.detail',
+                project_id=project.id
+            ) }}">
+                Back to Project
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('main.dashboard') }}">
+                Back to Dashboard
+            </a>
+        </p>
+
+    </main>
+
+</body>
+</html>

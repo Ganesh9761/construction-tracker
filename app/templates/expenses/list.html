@@ -30,6 +30,21 @@
 
         <h3>Expense Records</h3>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+
+                {% for category, message in messages %}
+
+                    <p>
+                        <strong>{{ category|title }}:</strong>
+                        {{ message }}
+                    </p>
+
+                {% endfor %}
+
+            {% endif %}
+        {% endwith %}
+
         {% if expenses %}
 
         <table border="1" cellpadding="8" cellspacing="0">
@@ -45,6 +60,7 @@
                     <th>Vendor</th>
                     <th>Payment Status</th>
                     <th>Created By</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
 
@@ -53,7 +69,10 @@
                 {% for expense in expenses %}
 
                 <tr>
-                    <td>{{ expense.id }}</td>
+
+                    <td>
+                        {{ expense.id }}
+                    </td>
 
                     <td>
                         {{ expense.expense_date }}
@@ -86,6 +105,48 @@
                     <td>
                         {{ expense.creator.username }}
                     </td>
+
+                    <td>
+
+                        <a
+                            href="{{ url_for(
+                                'expenses.edit',
+                                project_id=project.id,
+                                expense_id=expense.id
+                            ) }}"
+                        >
+                            Edit
+                        </a>
+
+                        <br>
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'expenses.delete',
+                                project_id=project.id,
+                                expense_id=expense.id
+                            ) }}"
+                            style="display: inline;"
+                            onsubmit="return confirm(
+                                'Are you sure you want to delete Expense #{{ expense.id }}?'
+                            );"
+                        >
+
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="{{ csrf_token() }}"
+                            >
+
+                            <button type="submit">
+                                Delete
+                            </button>
+
+                        </form>
+
+                    </td>
+
                 </tr>
 
                 {% endfor %}

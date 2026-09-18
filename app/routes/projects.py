@@ -6,24 +6,32 @@ from flask_login import current_user, login_required
 
 from app.extensions import db
 from app.models import Project
+from app.models.project import PROJECT_STATUSES
+from app.services.expense_service import (
+    get_expense_category_summary,
+    get_monthly_expense_summary,
+)
+from app.services.project_finance_service import (
+    get_project_financial_summary,
+    get_project_phase_financials,
+    get_project_progress_summary,
+)
 from app.services.project_service import create_project
 
 
-projects_bp = Blueprint("projects", __name__, url_prefix="/projects")
-
-
-def can_manage_projects():
-    return (
-        current_user.is_authenticated
-        and current_user.role in {"admin", "project_manager"}
-    )
+projects_bp = Blueprint(
+    "projects",
+    __name__,
+    url_prefix="/projects",
+)
 
 
 @projects_bp.route("/")
 @login_required
 def list_projects():
     projects = db.session.scalars(
-        db.select(Project).order_by(Project.id.desc())
+        db.select(Project)
+        .order_by(Project.created_at.desc())
     ).all()
 
     return render_template(
@@ -32,24 +40,10 @@ def list_projects():
     )
 
 
-@projects_bp.route("/<int:project_id>")
-@login_required
-def detail(project_id):
-    project = db.session.get(Project, project_id)
-
-    if project is None:
-        return "Project not found.", 404
-
-    return render_template(
-        "projects/detail.html",
-        project=project,
-    )
-
-
 @projects_bp.route("/create", methods=["GET", "POST"])
 @login_required
 def create():
-    if not can_manage_projects():
+    if current_user.role not in {"admin", "project_manager"}:
         return "Access denied.", 403
 
     if request.method == "POST":
@@ -92,16 +86,62 @@ def create():
             flash(str(error), "error")
 
             return render_template(
-                "projects/create.html"
+                "projects/create.html",
+                statuses=sorted(PROJECT_STATUSES),
             ), 400
 
         flash(
-            f"Project '{project.name}' created successfully.",
+            f"Project #{project.id} created successfully.",
             "success",
         )
 
         return redirect(
-            url_for("projects.list_projects")
+            url_for(
+                "projects.detail",
+                project_id=project.id,
+            )
         )
 
-    return render_template("projects/create.html")
+    return render_template(
+        "projects/create.html",
+        statuses=sorted(PROJECT_STATUSES),
+    )
+
+
+@projects_bp.route("/<int:project_id>")
+@login_required
+def detail(project_id):
+    project = db.session.get(Project, project_id)
+
+    if project is None:
+        return "Project not found.", 404
+
+    financial_summary = get_project_financial_summary(
+        project_id
+    )
+
+    phase_financials = get_project_phase_financials(
+        project_id
+    )
+
+    expense_category_summary = get_expense_category_summary(
+        project_id
+    )
+
+    monthly_expense_summary = get_monthly_expense_summary(
+        project_id
+    )
+
+    progress_summary = get_project_progress_summary(
+        project_id
+    )
+
+    return render_template(
+        "projects/detail.html",
+        project=project,
+        financial_summary=financial_summary,
+        phase_financials=phase_financials,
+        expense_category_summary=expense_category_summary,
+        monthly_expense_summary=monthly_expense_summary,
+        progress_summary=progress_summary,
+    )

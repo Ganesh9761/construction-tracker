@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {{ phase.name }} - Financial Summary
+    </title>
+</head>
+
+<body>
+
+    <main>
+
+        <h1>Construction Tracker</h1>
+
+        <h2>Phase Financial Summary</h2>
+
+        <p>
+            <strong>Project:</strong>
+            {{ project.name }}
+        </p>
+
+        <p>
+            <strong>Phase:</strong>
+            {{ phase.name }}
+        </p>
+
+        <hr>
+
+        <h3>Financial Overview</h3>
+
+        <table border="1" cellpadding="8" cellspacing="0">
+
+            <tr>
+                <th>Allocated Budget</th>
+                <td>
+                    ₹{{ "{:,.2f}".format(
+                        financial_summary.allocated_budget
+                    ) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Actual Cost</th>
+                <td>
+                    ₹{{ "{:,.2f}".format(
+                        financial_summary.actual_cost
+                    ) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Remaining Budget</th>
+                <td>
+                    ₹{{ "{:,.2f}".format(
+                        financial_summary.remaining_budget
+                    ) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Budget Variance</th>
+                <td>
+                    ₹{{ "{:,.2f}".format(
+                        financial_summary.budget_variance
+                    ) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Budget Utilization</th>
+                <td>
+                    {{ "{:.2f}".format(
+                        financial_summary.budget_utilization
+                    ) }}%
+                </td>
+            </tr>
+
+            <tr>
+                <th>Budget Status</th>
+                <td>
+                    {% if financial_summary.is_over_budget %}
+                        OVER BUDGET
+                    {% else %}
+                        Within Budget
+                    {% endif %}
+                </td>
+            </tr>
+
+        </table>
+
+        <hr>
+
+        <h3>Phase Progress</h3>
+
+        <p>
+            <strong>Completion:</strong>
+            {{ "{:.2f}".format(
+                phase.completion_percentage
+            ) }}%
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            {{ phase.status|replace("_", " ")|title }}
+        </p>
+
+        <hr>
+
+        <h3>Phase Modules</h3>
+
+        <p>
+            <a href="{{ url_for(
+                'progress.list_progress',
+                project_id=project.id,
+                phase_id=phase.id
+            ) }}">
+                Progress History
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for(
+                'expenses.list_expenses',
+                project_id=project.id
+            ) }}">
+                Project Expenses
+            </a>
+        </p>
+
+        <hr>
+
+        <p>
+            <a href="{{ url_for(
+                'phases.list_phases',
+                project_id=project.id
+            ) }}">
+                Back to Construction Phases
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for(
+                'projects.detail',
+                project_id=project.id
+            ) }}">
+                Back to Project
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for('main.dashboard') }}">
+                Back to Dashboard
+            </a>
+        </p>
+
+    </main>
+
+</body>
+</html>

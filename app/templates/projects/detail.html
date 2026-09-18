@@ -3,130 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ project.name }} - Construction Tracker</title>
+    <title>{{ project.name }} - Project Details</title>
 </head>
+
 <body>
-    <main>
+
+    <header>
         <h1>Construction Tracker</h1>
 
-        <h2>{{ project.name }}</h2>
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a> |
+            <a href="{{ url_for('projects.list_projects') }}">Projects</a> |
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </header>
 
-        <p>
-            <strong>Status:</strong>
-            {{ project.status|replace("_", " ")|title }}
-        </p>
+    <main>
 
-        <hr>
+        <h2>Project Details</h2>
 
-        <h3>Project Information</h3>
+        <section>
+            <h3>Project Information</h3>
 
-        <table border="1">
-            <tr>
-                <th>Project Name</th>
-                <td>{{ project.name }}</td>
-            </tr>
-
-            <tr>
-                <th>Client</th>
-                <td>{{ project.client_name }}</td>
-            </tr>
-
-            <tr>
-                <th>Location</th>
-                <td>{{ project.location }}</td>
-            </tr>
-
-            <tr>
-                <th>Start Date</th>
-                <td>{{ project.start_date }}</td>
-            </tr>
-
-            <tr>
-                <th>Expected Completion</th>
-                <td>{{ project.expected_completion_date }}</td>
-            </tr>
-
-            <tr>
-                <th>Total Budget</th>
-                <td>₹{{ "{:,.2f}".format(project.total_budget) }}</td>
-            </tr>
-
-            <tr>
-                <th>Status</th>
-                <td>{{ project.status|replace("_", " ")|title }}</td>
-            </tr>
-
-            <tr>
-                <th>Created By</th>
-                <td>{{ project.creator.username }}</td>
-            </tr>
-
-            <tr>
-                <th>Created At</th>
-                <td>{{ project.created_at }}</td>
-            </tr>
-
-            <tr>
-                <th>Last Updated</th>
-                <td>{{ project.updated_at }}</td>
-            </tr>
-        </table>
+            <table border="1" cellpadding="8">
+                <tr>
+                    <th>Project Name</th>
+                    <td>{{ project.name }}</td>
+                </tr>
+                <tr>
+                    <th>Client</th>
+                    <td>{{ project.client_name }}</td>
+                </tr>
+                <tr>
+                    <th>Location</th>
+                    <td>{{ project.location }}</td>
+                </tr>
+                <tr>
+                    <th>Start Date</th>
+                    <td>{{ project.start_date }}</td>
+                </tr>
+                <tr>
+                    <th>Expected Completion</th>
+                    <td>{{ project.expected_completion_date }}</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>{{ project.status.replace('_', ' ').title() }}</td>
+                </tr>
+            </table>
+        </section>
 
         <hr>
 
-        <h3>Construction Progress</h3>
+        <section>
+            <h3>Project Progress Summary</h3>
 
-        <p>
-            No construction phases have been added yet.
-        </p>
-
-        <h3>Financial Summary</h3>
-
-        <table border="1">
-            <tr>
-                <th>Allocated Budget</th>
-                <td>₹{{ "{:,.2f}".format(project.total_budget) }}</td>
-            </tr>
-
-            <tr>
-                <th>Actual Cost</th>
-                <td>₹0.00</td>
-            </tr>
-
-            <tr>
-                <th>Remaining Budget</th>
-                <td>₹{{ "{:,.2f}".format(project.total_budget) }}</td>
-            </tr>
-
-            <tr>
-                <th>Budget Utilization</th>
-                <td>0.00%</td>
-            </tr>
-        </table>
+            <table border="1" cellpadding="8">
+                <tr>
+                    <th>Overall Progress</th>
+                    <td>{{ "%.2f"|format(progress_summary.overall_progress) }}%</td>
+                </tr>
+                <tr>
+                    <th>Total Phases</th>
+                    <td>{{ progress_summary.total_phases }}</td>
+                </tr>
+                <tr>
+                    <th>Completed Phases</th>
+                    <td>{{ progress_summary.completed_phases }}</td>
+                </tr>
+                <tr>
+                    <th>In Progress Phases</th>
+                    <td>{{ progress_summary.in_progress_phases }}</td>
+                </tr>
+                <tr>
+                    <th>Not Started Phases</th>
+                    <td>{{ progress_summary.not_started_phases }}</td>
+                </tr>
+                <tr>
+                    <th>On Hold Phases</th>
+                    <td>{{ progress_summary.on_hold_phases }}</td>
+                </tr>
+            </table>
+        </section>
 
         <hr>
 
-        <h3>Project Modules</h3>
+        <section>
+            <h3>Financial Summary</h3>
 
-        <ul>
-            <li>Construction Phases — Coming next</li>
-            <li>Expense Management — Coming later</li>
-            <li>Progress Tracking — Coming later</li>
-            <li>Financial Analytics — Coming later</li>
-            <li>Reports — Coming later</li>
-        </ul>
+            <table border="1" cellpadding="8">
+                <tr>
+                    <th>Total Project Budget</th>
+                    <td>₹{{ "{:,.2f}".format(financial_summary.total_budget) }}</td>
+                </tr>
+                <tr>
+                    <th>Actual Cost</th>
+                    <td>₹{{ "{:,.2f}".format(financial_summary.actual_cost) }}</td>
+                </tr>
+                <tr>
+                    <th>Remaining Budget</th>
+                    <td>₹{{ "{:,.2f}".format(financial_summary.remaining_budget) }}</td>
+                </tr>
+                <tr>
+                    <th>Budget Variance</th>
+                    <td>₹{{ "{:,.2f}".format(financial_summary.budget_variance) }}</td>
+                </tr>
+                <tr>
+                    <th>Budget Utilization</th>
+                    <td>{{ "{:.2f}".format(financial_summary.budget_utilization) }}%</td>
+                </tr>
+            </table>
+        </section>
+
+        <hr>
+
+        <section>
+            <h3>Phase-wise Financial Summary</h3>
+
+            <table border="1" cellpadding="8">
+                <thead>
+                    <tr>
+                        <th>Phase</th>
+                        <th>Allocated Budget</th>
+                        <th>Actual Cost</th>
+                        <th>Budget Utilization</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Financials</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for phase in phase_financials %}
+                    <tr>
+                        <td>{{ phase.phase_name }}</td>
+                        <td>₹{{ "{:,.2f}".format(phase.allocated_budget) }}</td>
+                        <td>₹{{ "{:,.2f}".format(phase.actual_cost) }}</td>
+                        <td>{{ "{:.2f}".format(phase.budget_utilization) }}%</td>
+                        <td>{{ "{:.2f}".format(phase.completion_percentage) }}%</td>
+                        <td>{{ phase.status.replace('_', ' ').title() }}</td>
+                        <td>
+                            <a href="{{ url_for(
+                                'progress.list_progress',
+                                project_id=project.id,
+                                phase_id=phase.phase_id
+                            ) }}">
+                                View Progress
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for(
+                                'phase_finance.detail',
+                                project_id=project.id,
+                                phase_id=phase.phase_id
+                            ) }}">
+                                View Financials
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <hr>
+
+        <section>
+            <h3>Budget vs Actual Cost</h3>
+
+            <div style="width: 100%; max-width: 900px; height: 400px;">
+                <canvas
+                    id="budgetVsActualChart"
+                    data-phase-names='{{ phase_financials | map(attribute="phase_name") | list | tojson }}'
+                    data-allocated-budgets='{{ phase_financials | map(attribute="allocated_budget") | map("float") | list | tojson }}'
+                    data-actual-costs='{{ phase_financials | map(attribute="actual_cost") | map("float") | list | tojson }}'
+                ></canvas>
+            </div>
+        </section>
+
+        <hr>
+
+        <section>
+            <h3>Expense Category Summary</h3>
+
+            <table border="1" cellpadding="8">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Total Expense</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for category, total in expense_category_summary.items() %}
+                    <tr>
+                        <td>{{ category.replace('_', ' ').title() }}</td>
+                        <td>₹{{ "{:,.2f}".format(total) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <hr>
+
+        <section>
+            <h3>Monthly Expense Trend</h3>
+
+            <table border="1" cellpadding="8">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Total Expense</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for month in monthly_expense_summary %}
+                    <tr>
+                        <td>{{ month.month }}</td>
+                        <td>₹{{ "{:,.2f}".format(month.total) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <hr>
+
+        <section>
+            <h3>Project Modules</h3>
+
+            <h4>Construction Phases</h4>
+
+            <p>
+                <a href="{{ url_for('phases.list_phases', project_id=project.id) }}">
+                    View Project Phases
+                </a>
+            </p>
+
+            <h4>Expense Management</h4>
+
+            <p>
+                <a href="{{ url_for('expenses.list_expenses', project_id=project.id) }}">
+                    View Project Expenses
+                </a>
+            </p>
+
+            <h4>Phase-level Progress & Financial Analysis</h4>
+
+            <p>
+                Use the actions in the Phase-wise Financial Summary above
+                to open progress history and financial analysis for each phase.
+            </p>
+
+        </section>
+
+        <hr>
 
         <p>
             <a href="{{ url_for('projects.list_projects') }}">
-                Back to Projects
+                ← Back to Projects
             </a>
         </p>
 
-        <p>
-            <a href="{{ url_for('main.dashboard') }}">
-                Back to Dashboard
-            </a>
-        </p>
     </main>
+
+    <script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/project_financials.js') }}"></script>
+
 </body>
 </html>

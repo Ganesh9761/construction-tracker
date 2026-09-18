@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Add Progress Update - {{ phase.name }}
+    </title>
+</head>
+
+<body>
+
+    <main>
+
+        <h1>Construction Tracker</h1>
+
+        <h2>Add Progress Update</h2>
+
+        <p>
+            <strong>Project:</strong>
+            {{ project.name }}
+        </p>
+
+        <p>
+            <strong>Phase:</strong>
+            {{ phase.name }}
+        </p>
+
+        <hr>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+
+                {% for category, message in messages %}
+
+                    <p>
+                        <strong>{{ category|title }}:</strong>
+                        {{ message }}
+                    </p>
+
+                {% endfor %}
+
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+            <div>
+
+                <label for="completion_percentage">
+                    Completion Percentage
+                </label>
+
+                <br>
+
+                <input
+                    type="number"
+                    id="completion_percentage"
+                    name="completion_percentage"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value="{{ phase.completion_percentage }}"
+                    required
+                >
+
+                %
+
+            </div>
+
+            <br>
+
+            <div>
+
+                <label for="notes">
+                    Progress Notes
+                </label>
+
+                <br>
+
+                <textarea
+                    id="notes"
+                    name="notes"
+                    rows="5"
+                    cols="60"
+                    placeholder="Describe the work completed..."
+                ></textarea>
+
+            </div>
+
+            <br>
+
+            <button type="submit">
+                Save Progress Update
+            </button>
+
+        </form>
+
+        <hr>
+
+        <p>
+            <a href="{{ url_for(
+                'progress.list_progress',
+                project_id=project.id,
+                phase_id=phase.id
+            ) }}">
+                Back to Progress History
+            </a>
+        </p>
+
+        <p>
+            <a href="{{ url_for(
+                'phases.list_phases',
+                project_id=project.id
+            ) }}">
+                Back to Construction Phases
+            </a>
+        </p>
+
+    </main>
+
+</body>
+</html>

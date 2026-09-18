@@ -14,7 +14,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     csrf.init_app(app)
 
-    from app.models import Expense, Phase, Project, User
+    from app.models import Expense, Phase, ProgressUpdate, Project, User
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -26,6 +26,8 @@ def create_app(config_class=Config):
     from app.routes.projects import projects_bp
     from app.routes.users import users_bp
     from app.routes.expenses import expenses_bp
+    from app.routes.progress import progress_bp
+    from app.routes.phase_finance import phase_finance_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -33,5 +35,7 @@ def create_app(config_class=Config):
     app.register_blueprint(projects_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(expenses_bp)
+    app.register_blueprint(progress_bp)
+    app.register_blueprint(phase_finance_bp)
 
     return app
