@@ -1,6 +1,12 @@
 from flask import Blueprint, render_template
 from flask_login import current_user, login_required
 
+from app.services.dashboard_service import (
+    get_dashboard_summary,
+    get_project_chart_data,
+    get_project_dashboard_rows,
+)
+
 
 main_bp = Blueprint("main", __name__)
 
@@ -8,4 +14,13 @@ main_bp = Blueprint("main", __name__)
 @main_bp.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("main/dashboard.html")
+    dashboard_summary = get_dashboard_summary()
+    project_dashboard_rows = get_project_dashboard_rows()
+    project_chart_data = get_project_chart_data()
+
+    return render_template(
+        "main/dashboard.html",
+        dashboard_summary=dashboard_summary,
+        project_dashboard_rows=project_dashboard_rows,
+        project_chart_data=project_chart_data,
+    )

@@ -3,22 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Dashboard - Construction Tracker</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/dashboard.css'
+        ) }}"
+    >
 </head>
+
 <body>
-    <main>
+
+    <header>
         <h1>Construction Tracker</h1>
 
-        <h2>Dashboard</h2>
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">
+                Dashboard
+            </a>
 
-        <p>Welcome, {{ current_user.username }}!</p>
+            <a href="{{ url_for('projects.list_projects') }}">
+                Projects
+            </a>
 
-        <p>Role: {{ current_user.role }}</p>
+            <a href="{{ url_for('users.list_users') }}">
+                Users
+            </a>
+        </nav>
+    </header>
 
-        <form method="POST" action="{{ url_for('auth.logout') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit">Logout</button>
-        </form>
+    <main>
+
+        <section>
+            <h2>Management Dashboard</h2>
+
+            <p>
+                Welcome,
+                <strong>{{ current_user.username }}</strong>
+            </p>
+
+            <p>
+                Role:
+                <strong>
+                    {{ current_user.role.replace('_', ' ').title() }}
+                </strong>
+            </p>
+        </section>
+
+        <section>
+            <h3>Project Overview</h3>
+
+            <div class="kpi-grid">
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Total Projects
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ dashboard_summary.total_projects }}
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Active Projects
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ dashboard_summary.active_projects }}
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Completed Projects
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ dashboard_summary.completed_projects }}
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        On Hold Projects
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ dashboard_summary.on_hold_projects }}
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section>
+            <h3>Financial Overview</h3>
+
+            <div class="kpi-grid">
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Total Budget
+                    </div>
+
+                    <div class="kpi-value">
+                        ₹{{ "{:,.2f}".format(
+                            dashboard_summary.total_budget
+                        ) }}
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Actual Cost
+                    </div>
+
+                    <div class="kpi-value">
+                        ₹{{ "{:,.2f}".format(
+                            dashboard_summary.total_actual_cost
+                        ) }}
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Remaining Budget
+                    </div>
+
+                    <div class="kpi-value">
+                        ₹{{ "{:,.2f}".format(
+                            dashboard_summary.remaining_budget
+                        ) }}
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Budget Utilization
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ "{:.2f}".format(
+                            dashboard_summary.budget_utilization
+                        ) }}%
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section>
+            <h3>Construction Progress</h3>
+
+            <div class="kpi-card progress-card">
+
+                <div class="kpi-label">
+                    Overall Progress
+                </div>
+
+                <div class="kpi-value">
+                    {{ "{:.2f}".format(
+                        dashboard_summary.average_progress
+                    ) }}%
+                </div>
+
+                <div class="progress-track">
+                    <div class="progress-fill"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <section>
+            <h3>Project Financial & Progress Overview</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Client</th>
+                        <th>Status</th>
+                        <th>Total Budget</th>
+                        <th>Actual Cost</th>
+                        <th>Remaining Budget</th>
+                        <th>Budget Utilization</th>
+                        <th>Progress</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for project in project_dashboard_rows %}
+
+                    <tr>
+                        <td>
+                            {{ project.project_name }}
+                        </td>
+
+                        <td>
+                            {{ project.client_name }}
+                        </td>
+
+                        <td>
+                            {{ project.status.replace(
+                                '_',
+                                ' '
+                            ).title() }}
+                        </td>
+
+                        <td>
+                            ₹{{ "{:,.2f}".format(
+                                project.total_budget
+                            ) }}
+                        </td>
+
+                        <td>
+                            ₹{{ "{:,.2f}".format(
+                                project.actual_cost
+                            ) }}
+                        </td>
+
+                        <td>
+                            ₹{{ "{:,.2f}".format(
+                                project.remaining_budget
+                            ) }}
+                        </td>
+
+                        <td>
+                            {{ "{:.2f}".format(
+                                project.budget_utilization
+                            ) }}%
+                        </td>
+
+                        <td>
+                            {{ "{:.2f}".format(
+                                project.overall_progress
+                            ) }}%
+                        </td>
+
+                        <td>
+                            <a href="{{ url_for(
+                                'projects.detail',
+                                project_id=project.project_id
+                            ) }}">
+                                View Project
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="9">
+                            No projects available.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h3>Budget vs Actual Cost by Project</h3>
+
+            <div class="chart-container">
+                <canvas
+                    id="dashboardBudgetVsActualChart"
+                    data-project-names='{{ project_chart_data.project_names | tojson }}'
+                    data-budgets='{{ project_chart_data.budgets | tojson }}'
+                    data-actual-costs='{{ project_chart_data.actual_costs | tojson }}'
+                ></canvas>
+            </div>
+        </section>
+
+        <section>
+            <h3>Construction Progress by Project</h3>
+
+            <div class="chart-container">
+                <canvas
+                    id="dashboardProgressChart"
+                    data-project-names='{{ project_chart_data.project_names | tojson }}'
+                    data-progress='{{ project_chart_data.progress | tojson }}'
+                ></canvas>
+            </div>
+        </section>
+
+        <section>
+            <h3>Budget Utilization by Project</h3>
+
+            <div class="chart-container">
+                <canvas
+                    id="dashboardBudgetUtilizationChart"
+                    data-project-names='{{ project_chart_data.project_names | tojson }}'
+                    data-budget-utilization='{{ project_chart_data.budget_utilization | tojson }}'
+                ></canvas>
+            </div>
+        </section>
+
+        <section>
+            <h3>Management Modules</h3>
+
+            <ul>
+                <li>
+                    <a href="{{ url_for('projects.list_projects') }}">
+                        Project Management
+                    </a>
+                </li>
+
+                <li>
+                    View construction phases through individual projects.
+                </li>
+
+                <li>
+                    View and manage project expenses through individual
+                    projects.
+                </li>
+
+                <li>
+                    Track construction progress and progress history
+                    through individual phases.
+                </li>
+
+                <li>
+                    Review phase-level financial analysis through
+                    individual phases.
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <form
+                method="POST"
+                action="{{ url_for('auth.logout') }}"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+                <button type="submit">
+                    Logout
+                </button>
+            </form>
+        </section>
+
     </main>
+
+    <script
+        src="{{ url_for(
+            'static',
+            filename='vendor/chart.umd.min.js'
+        ) }}"
+    ></script>
+
+    <script
+        src="{{ url_for(
+            'static',
+            filename='js/dashboard.js'
+        ) }}"
+    ></script>
+
 </body>
 </html>

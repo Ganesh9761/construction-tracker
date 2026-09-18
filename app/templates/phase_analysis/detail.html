@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {{ project.name }} - Phase Analysis
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/dashboard.css'
+        ) }}"
+    >
+</head>
+
+<body>
+
+    <header>
+        <h1>Construction Tracker</h1>
+
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('projects.list_projects') }}">
+                Projects
+            </a>
+
+            <a href="{{ url_for('users.list_users') }}">
+                Users
+            </a>
+        </nav>
+    </header>
+
+    <main>
+
+        <section>
+            <h2>Phase Analysis</h2>
+
+            <p>
+                <strong>Project:</strong>
+                {{ project.name }}
+            </p>
+
+            <p>
+                <strong>Client:</strong>
+                {{ project.client_name }}
+            </p>
+
+            <p>
+                <strong>Location:</strong>
+                {{ project.location }}
+            </p>
+        </section>
+
+        <section>
+            <h3>Project Progress Summary</h3>
+
+            <div class="kpi-grid">
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Overall Progress
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ "{:.2f}".format(
+                            progress_summary.overall_progress
+                        ) }}%
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Total Phases
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ progress_summary.total_phases }}
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        Completed
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ progress_summary.completed_phases }}
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">
+                        In Progress
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ progress_summary.in_progress_phases }}
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section>
+            <h3>Phase Financial & Progress Analysis</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Phase</th>
+                        <th>Allocated Budget</th>
+                        <th>Actual Cost</th>
+                        <th>Remaining Budget</th>
+                        <th>Budget Utilization</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                        <th>Budget Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for phase in phase_financials %}
+
+                    <tr>
+                        <td>
+                            {{ phase.phase_name }}
+                        </td>
+
+                        <td>
+                            ₹{{ "{:,.2f}".format(
+                                phase.allocated_budget
+                            ) }}
+                        </td>
+
+                        <td>
+                            ₹{{ "{:,.2f}".format(
+                                phase.actual_cost
+                            ) }}
+                        </td>
+
+                        <td>
+                            ₹{{ "{:,.2f}".format(
+                                phase.remaining_budget
+                            ) }}
+                        </td>
+
+                        <td>
+                            {{ "{:.2f}".format(
+                                phase.budget_utilization
+                            ) }}%
+                        </td>
+
+                        <td>
+                            {{ "{:.2f}".format(
+                                phase.completion_percentage
+                            ) }}%
+                        </td>
+
+                        <td>
+                            {{ phase.status.replace(
+                                '_',
+                                ' '
+                            ).title() }}
+                        </td>
+
+                        <td>
+                            {% if phase.is_over_budget %}
+                                Over Budget
+                            {% else %}
+                                Within Budget
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="8">
+                            No phase data available.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h3>Phase Progress Overview</h3>
+
+            <div class="chart-container">
+
+                <canvas
+                    id="phaseProgressChart"
+                    data-phase-names='{{ phase_financials | map(attribute="phase_name") | list | tojson }}'
+                    data-progress='{{ phase_financials | map(attribute="completion_percentage") | map("float") | list | tojson }}'
+                ></canvas>
+
+            </div>
+        </section>
+
+        <section>
+            <h3>Phase Budget Utilization</h3>
+
+            <div class="chart-container">
+
+                <canvas
+                    id="phaseBudgetUtilizationChart"
+                    data-phase-names='{{ phase_financials | map(attribute="phase_name") | list | tojson }}'
+                    data-utilization='{{ phase_financials | map(attribute="budget_utilization") | map("float") | list | tojson }}'
+                ></canvas>
+
+            </div>
+        </section>
+
+        <section>
+
+            <p>
+                <a href="{{ url_for(
+                    'projects.detail',
+                    project_id=project.id
+                ) }}">
+                    ← Back to Project
+                </a>
+            </p>
+
+        </section>
+
+    </main>
+
+    <script
+        src="{{ url_for(
+            'static',
+            filename='vendor/chart.umd.min.js'
+        ) }}"
+    ></script>
+
+    <script
+        src="{{ url_for(
+            'static',
+            filename='js/phase_analysis.js'
+        ) }}"
+    ></script>
+
+</body>
+</html>
