@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create User - Construction Tracker</title>
+</head>
+<body>
+    <main>
+        <h1>Construction Tracker</h1>
+
+        <h2>Create User</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+            <div>
+                <label for="username">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    required
+                    maxlength="80"
+                >
+            </div>
+
+            <br>
+
+            <div>
+                <label for="email">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    maxlength="120"
+                >
+            </div>
+
+            <br>
+
+            <div>
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                >
+            </div>
+
+            <br>
+
+            <div>
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                    <option value="site_engineer">Site Engineer</option>
+                    <option value="project_manager">Project Manager</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <br>
+
+            <button type="submit">Create User</button>
+        </form>
+
+        <p>
+            <a href="{{ url_for('main.dashboard') }}">
+                Back to Dashboard
+            </a>
+        </p>
+    </main>
+</body>
+</html>
