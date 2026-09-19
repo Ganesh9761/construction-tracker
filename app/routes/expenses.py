@@ -7,6 +7,7 @@ from flask_login import current_user, login_required
 from app.extensions import db
 from app.models import Expense, Phase, Project
 from app.models.expense import EXPENSE_CATEGORIES, PAYMENT_STATUSES
+from app.services.authorization_service import permission_required
 from app.services.expense_service import (
     create_expense,
     delete_expense,
@@ -23,6 +24,7 @@ expenses_bp = Blueprint(
 
 @expenses_bp.route("/")
 @login_required
+@permission_required("view_expenses")
 def list_expenses(project_id):
     project = db.session.get(Project, project_id)
 
@@ -47,6 +49,7 @@ def list_expenses(project_id):
 
 @expenses_bp.route("/create", methods=["GET", "POST"])
 @login_required
+@permission_required("create_expense")
 def create(project_id):
     project = db.session.get(Project, project_id)
 
@@ -130,6 +133,7 @@ def create(project_id):
     methods=["GET", "POST"],
 )
 @login_required
+@permission_required("edit_expense")
 def edit(expense_id, project_id):
     expense = db.session.get(Expense, expense_id)
 
@@ -223,6 +227,7 @@ def edit(expense_id, project_id):
     methods=["POST"],
 )
 @login_required
+@permission_required("delete_expense")
 def delete(expense_id, project_id):
     try:
         delete_expense(

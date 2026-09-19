@@ -15,6 +15,7 @@ from wtforms.validators import DataRequired, NumberRange, ValidationError
 from app.extensions import db
 from app.models import Project
 from app.services.audit_service import create_audit_log
+from app.services.authorization_service import permission_required
 
 
 projects_bp = Blueprint(
@@ -91,6 +92,7 @@ class ProjectForm(FlaskForm):
 
 @projects_bp.route("/")
 @login_required
+@permission_required("view_projects")
 def list_projects():
     projects = db.session.scalars(
         db.select(Project)
@@ -105,6 +107,7 @@ def list_projects():
 
 @projects_bp.route("/new", methods=["GET", "POST"])
 @login_required
+@permission_required("create_project")
 def create():
     form = ProjectForm()
 
@@ -160,6 +163,7 @@ def create():
 
 @projects_bp.route("/<int:project_id>")
 @login_required
+@permission_required("view_projects")
 def detail(project_id):
     project = db.session.get(
         Project,
@@ -180,6 +184,7 @@ def detail(project_id):
     methods=["GET", "POST"],
 )
 @login_required
+@permission_required("edit_project")
 def edit(project_id):
     project = db.session.get(
         Project,

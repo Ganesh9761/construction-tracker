@@ -6,6 +6,7 @@ from flask_login import login_required
 
 from app.extensions import db
 from app.models import Phase, Project
+from app.services.authorization_service import permission_required
 from app.services.phase_service import create_phase
 
 
@@ -18,6 +19,7 @@ phases_bp = Blueprint(
 
 @phases_bp.route("/")
 @login_required
+@permission_required("view_projects")
 def list_phases(project_id):
     project = db.session.get(Project, project_id)
 
@@ -39,6 +41,7 @@ def list_phases(project_id):
 
 @phases_bp.route("/create", methods=["GET", "POST"])
 @login_required
+@permission_required("manage_phases")
 def create(project_id):
     project = db.session.get(Project, project_id)
 

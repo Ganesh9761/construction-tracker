@@ -3,6 +3,7 @@ from flask_login import login_required
 
 from app.extensions import db
 from app.models import Phase, Project
+from app.services.authorization_service import permission_required
 from app.services.phase_finance_service import (
     get_phase_financial_summary,
 )
@@ -17,6 +18,7 @@ phase_finance_bp = Blueprint(
 
 @phase_finance_bp.route("/")
 @login_required
+@permission_required("view_financial_analysis")
 def detail(project_id, phase_id):
     project = db.session.get(Project, project_id)
 

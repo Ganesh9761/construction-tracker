@@ -5,6 +5,7 @@ from flask_login import current_user, login_required
 
 from app.extensions import db
 from app.models import Phase, ProgressUpdate, Project
+from app.services.authorization_service import permission_required
 from app.services.progress_service import create_progress_update
 
 
@@ -17,6 +18,7 @@ progress_bp = Blueprint(
 
 @progress_bp.route("/")
 @login_required
+@permission_required("view_projects")
 def list_progress(project_id, phase_id):
     project = db.session.get(Project, project_id)
 
@@ -50,6 +52,7 @@ def list_progress(project_id, phase_id):
 
 @progress_bp.route("/create", methods=["GET", "POST"])
 @login_required
+@permission_required("update_progress")
 def create(project_id, phase_id):
     project = db.session.get(Project, project_id)
 
