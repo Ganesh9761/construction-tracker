@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Audit Logs - Construction Tracker</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/dashboard.css'
+        ) }}"
+    >
+</head>
+
+<body>
+
+    <header>
+        <h1>Construction Tracker</h1>
+
+        <nav>
+            <a href="{{ url_for('main.dashboard') }}">
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('projects.list_projects') }}">
+                Projects
+            </a>
+
+            {% if current_user.role in ["admin", "project_manager"] %}
+            <a href="{{ url_for('audit.list_logs') }}">
+                Audit Logs
+            </a>
+            {% endif %}
+
+            {% if current_user.role == "admin" %}
+            <a href="{{ url_for('users.list_users') }}">
+                Users
+            </a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+
+        <section>
+            <h2>Audit Logs</h2>
+
+            <p>
+                Review important actions performed across the
+                construction management system.
+            </p>
+
+            <p>
+                Logged in as:
+                <strong>{{ current_user.username }}</strong>
+                |
+                Role:
+                <strong>
+                    {{ current_user.role.replace(
+                        '_',
+                        ' '
+                    ).title() }}
+                </strong>
+            </p>
+        </section>
+
+        <section>
+            <h3>Recent System Activity</h3>
+
+            {% if audit_logs %}
+
+            <p>
+                Showing
+                <strong>{{ audit_logs|length }}</strong>
+                recent audit records.
+            </p>
+
+            <div style="overflow-x: auto;">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Entity</th>
+                            <th>Entity ID</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for log in audit_logs %}
+
+                        <tr>
+                            <td>
+                                {{ log.created_at.strftime(
+                                    "%d %b %Y, %H:%M"
+                                ) }}
+                            </td>
+
+                            <td>
+                                {{ log.user.username }}
+                            </td>
+
+                            <td>
+                                {{ log.action.replace(
+                                    '_',
+                                    ' '
+                                ).title() }}
+                            </td>
+
+                            <td>
+                                {{ log.entity_type.replace(
+                                    '_',
+                                    ' '
+                                ).title() }}
+                            </td>
+
+                            <td>
+                                {% if log.entity_id %}
+                                    #{{ log.entity_id }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ log.description }}
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+            </div>
+
+            {% else %}
+
+            <p>
+                No audit activity has been recorded yet.
+            </p>
+
+            {% endif %}
+
+        </section>
+
+        <section>
+
+            <a href="{{ url_for('main.dashboard') }}">
+                ← Back to Dashboard
+            </a>
+
+        </section>
+
+        <section>
+
+            <form
+                method="POST"
+                action="{{ url_for('auth.logout') }}"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+                <button type="submit">
+                    Logout
+                </button>
+            </form>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

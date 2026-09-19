@@ -18,6 +18,7 @@ def create_app(config_class=Config):
     csrf.init_app(app)
 
     from app.models import (
+        AuditLog,
         Expense,
         Phase,
         ProgressUpdate,
@@ -41,6 +42,7 @@ def create_app(config_class=Config):
     from app.routes.progress import progress_bp
     from app.routes.phase_finance import phase_finance_bp
     from app.routes.phase_analysis import phase_analysis_bp
+    from app.routes.audit import audit_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -51,5 +53,6 @@ def create_app(config_class=Config):
     app.register_blueprint(progress_bp)
     app.register_blueprint(phase_finance_bp)
     app.register_blueprint(phase_analysis_bp)
+    app.register_blueprint(audit_bp)
 
     return app

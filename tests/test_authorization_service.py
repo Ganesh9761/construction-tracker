@@ -75,3 +75,45 @@ def test_admin_can_access_user_management(app, client):
     response = client.get("/users/")
 
     assert response.status_code == 200
+
+
+def test_admin_can_access_audit_logs(app, client):
+    with app.app_context():
+        user = create_user("admin")
+        user_id = user.id
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.get("/audit-logs/")
+
+    assert response.status_code == 200
+
+
+def test_project_manager_can_access_audit_logs(app, client):
+    with app.app_context():
+        user = create_user("project_manager")
+        user_id = user.id
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.get("/audit-logs/")
+
+    assert response.status_code == 200
+
+
+def test_site_engineer_cannot_access_audit_logs(app, client):
+    with app.app_context():
+        user = create_user("site_engineer")
+        user_id = user.id
+
+    with client.session_transaction() as session:
+        session["_user_id"] = str(user_id)
+        session["_fresh"] = True
+
+    response = client.get("/audit-logs/")
+
+    assert response.status_code == 403
