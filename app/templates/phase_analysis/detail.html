@@ -1,201 +1,524 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-    <title>
-        {{ project.name }} - Phase Analysis
-    </title>
+{% block title %}Phase Analysis - {{ project.name }}{% endblock %}
 
-    <link
-        rel="stylesheet"
-        href="{{ url_for(
-            'static',
-            filename='css/dashboard.css'
-        ) }}"
-    >
-</head>
+{% block content %}
 
-<body>
+<div class="page-header">
 
-    <header>
-        <h1>Construction Tracker</h1>
+    <div>
 
-        <nav>
-            <a href="{{ url_for('main.dashboard') }}">
-                Dashboard
-            </a>
+        <div class="breadcrumb">
 
             <a href="{{ url_for('projects.list_projects') }}">
                 Projects
             </a>
 
-            <a href="{{ url_for('users.list_users') }}">
-                Users
-            </a>
-        </nav>
-    </header>
+            <span>/</span>
 
-    <main>
-
-        <section>
-            <h2>Phase Analysis</h2>
-
-            <p>
-                <strong>Project:</strong>
+            <a href="{{ url_for(
+                'projects.detail',
+                project_id=project.id
+            ) }}">
                 {{ project.name }}
-            </p>
+            </a>
 
-            <p>
-                <strong>Client:</strong>
-                {{ project.client_name }}
-            </p>
+            <span>/</span>
 
-            <p>
-                <strong>Location:</strong>
-                {{ project.location }}
-            </p>
-        </section>
+            <strong>Phase Analysis</strong>
 
-        <section>
-            <h3>Project Progress Summary</h3>
+        </div>
 
-            <div class="kpi-grid">
+        <h1 class="page-title">
+            Construction Phase Analysis
+        </h1>
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Overall Progress
-                    </div>
+        <p class="page-subtitle">
+            Analyze project completion, phase-level financial performance,
+            budget utilization and construction cost escalation over time.
+        </p>
 
-                    <div class="kpi-value">
-                        {{ "{:.2f}".format(
-                            progress_summary.overall_progress
-                        ) }}%
-                    </div>
+    </div>
+
+    <div class="page-actions">
+
+        <a
+            href="{{ url_for(
+                'projects.detail',
+                project_id=project.id
+            ) }}"
+            class="button button-secondary"
+        >
+            Back to Project
+        </a>
+
+    </div>
+
+</div>
+
+
+<section class="section-block">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h3>
+                    Project Analysis Context
+                </h3>
+
+                <p>
+                    Current project information used for this financial
+                    and construction analysis.
+                </p>
+
+            </div>
+
+            <span class="status-badge status-{{ project.status.replace('_', '-') }}">
+                {{ project.status|replace("_", " ")|title }}
+            </span>
+
+        </div>
+
+
+        <div class="metric-grid">
+
+            <div class="metric-card">
+
+                <div class="metric-label">
+                    Project
                 </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Total Phases
-                    </div>
-
-                    <div class="kpi-value">
-                        {{ progress_summary.total_phases }}
-                    </div>
+                <div class="metric-value">
+                    {{ project.name }}
                 </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Completed
-                    </div>
-
-                    <div class="kpi-value">
-                        {{ progress_summary.completed_phases }}
-                    </div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        In Progress
-                    </div>
-
-                    <div class="kpi-value">
-                        {{ progress_summary.in_progress_phases }}
-                    </div>
+                <div class="metric-meta">
+                    Construction project
                 </div>
 
             </div>
-        </section>
 
-        <section>
-            <h3>Phase Financial & Progress Analysis</h3>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Phase</th>
-                        <th>Allocated Budget</th>
-                        <th>Actual Cost</th>
-                        <th>Remaining Budget</th>
-                        <th>Budget Utilization</th>
-                        <th>Progress</th>
-                        <th>Status</th>
-                        <th>Budget Status</th>
-                    </tr>
-                </thead>
+            <div class="metric-card">
 
-                <tbody>
+                <div class="metric-label">
+                    Client
+                </div>
 
-                    {% for phase in phase_financials %}
+                <div class="metric-value">
+                    {{ project.client_name }}
+                </div>
 
-                    <tr>
-                        <td>
-                            {{ phase.phase_name }}
-                        </td>
+                <div class="metric-meta">
+                    Project client
+                </div>
 
-                        <td>
-                            ₹{{ "{:,.2f}".format(
-                                phase.allocated_budget
-                            ) }}
-                        </td>
+            </div>
 
-                        <td>
-                            ₹{{ "{:,.2f}".format(
-                                phase.actual_cost
-                            ) }}
-                        </td>
 
-                        <td>
-                            ₹{{ "{:,.2f}".format(
-                                phase.remaining_budget
-                            ) }}
-                        </td>
+            <div class="metric-card">
 
-                        <td>
-                            {{ "{:.2f}".format(
-                                phase.budget_utilization
-                            ) }}%
-                        </td>
+                <div class="metric-label">
+                    Location
+                </div>
 
-                        <td>
-                            {{ "{:.2f}".format(
-                                phase.completion_percentage
-                            ) }}%
-                        </td>
+                <div class="metric-value">
+                    {{ project.location }}
+                </div>
 
-                        <td>
-                            {{ phase.status.replace(
-                                '_',
-                                ' '
-                            ).title() }}
-                        </td>
+                <div class="metric-meta">
+                    Project site
+                </div>
 
-                        <td>
-                            {% if phase.is_over_budget %}
-                                Over Budget
-                            {% else %}
-                                Within Budget
-                            {% endif %}
-                        </td>
-                    </tr>
+            </div>
 
-                    {% else %}
 
-                    <tr>
-                        <td colspan="8">
-                            No phase data available.
-                        </td>
-                    </tr>
+            <div class="metric-card">
 
-                    {% endfor %}
+                <div class="metric-label">
+                    Project Budget
+                </div>
 
-                </tbody>
-            </table>
-        </section>
+                <div class="metric-value metric-value-currency">
+                    ₹{{ "{:,.2f}".format(project.total_budget) }}
+                </div>
 
-        <section>
-            <h3>Phase Progress Overview</h3>
+                <div class="metric-meta">
+                    Approved project allocation
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Project Progress Summary
+            </h2>
+
+            <p>
+                High-level construction completion indicators across all
+                project phases.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="metric-grid">
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Overall Progress
+            </div>
+
+            <div class="metric-value">
+                {{ "{:.2f}".format(
+                    progress_summary.overall_progress
+                ) }}%
+            </div>
+
+            <div class="dashboard-progress-track">
+
+                <div
+                    class="progress-fill"
+                    style="width: {{ [
+                        progress_summary.overall_progress|float,
+                        100
+                    ]|min }}%;"
+                ></div>
+
+            </div>
+
+            <div class="metric-meta">
+                Weighted construction completion
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Total Phases
+            </div>
+
+            <div class="metric-value">
+                {{ progress_summary.total_phases }}
+            </div>
+
+            <div class="metric-meta">
+                Defined construction phases
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Completed Phases
+            </div>
+
+            <div class="metric-value">
+                {{ progress_summary.completed_phases }}
+            </div>
+
+            <div class="metric-meta">
+                Phases marked completed
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                In Progress
+            </div>
+
+            <div class="metric-value">
+                {{ progress_summary.in_progress_phases }}
+            </div>
+
+            <div class="metric-meta">
+                Currently active phases
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Phase Financial & Progress Register
+            </h2>
+
+            <p>
+                Compare budget allocation, actual spending, utilization
+                and physical completion for every construction phase.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        {% if phase_financials %}
+
+            <div class="table-wrapper">
+
+                <table class="data-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Phase
+                            </th>
+
+                            <th>
+                                Allocated Budget
+                            </th>
+
+                            <th>
+                                Actual Cost
+                            </th>
+
+                            <th>
+                                Remaining
+                            </th>
+
+                            <th>
+                                Utilization
+                            </th>
+
+                            <th>
+                                Progress
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Budget Control
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for phase in phase_financials %}
+
+                            <tr>
+
+                                <td class="table-primary">
+                                    <strong>
+                                        {{ phase.phase_name }}
+                                    </strong>
+                                </td>
+
+
+                                <td>
+                                    ₹{{ "{:,.2f}".format(
+                                        phase.allocated_budget
+                                    ) }}
+                                </td>
+
+
+                                <td>
+                                    ₹{{ "{:,.2f}".format(
+                                        phase.actual_cost
+                                    ) }}
+                                </td>
+
+
+                                <td>
+                                    ₹{{ "{:,.2f}".format(
+                                        phase.remaining_budget
+                                    ) }}
+                                </td>
+
+
+                                <td>
+
+                                    <strong>
+                                        {{ "{:.2f}".format(
+                                            phase.budget_utilization
+                                        ) }}%
+                                    </strong>
+
+                                    <div class="dashboard-progress-track">
+
+                                        <div
+                                            class="progress-fill"
+                                            style="width: {{ [
+                                                phase.budget_utilization|float,
+                                                100
+                                            ]|min }}%;"
+                                        ></div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td>
+
+                                    <strong>
+                                        {{ "{:.2f}".format(
+                                            phase.completion_percentage
+                                        ) }}%
+                                    </strong>
+
+                                    <div class="dashboard-progress-track">
+
+                                        <div
+                                            class="progress-fill"
+                                            style="width: {{ [
+                                                phase.completion_percentage|float,
+                                                100
+                                            ]|min }}%;"
+                                        ></div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td>
+
+                                    <span class="status-badge status-{{ phase.status.replace('_', '-') }}">
+                                        {{ phase.status|replace("_", " ")|title }}
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+
+                                    {% if phase.is_over_budget %}
+
+                                        <span class="status-badge status-overdue">
+                                            Over Budget
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status-badge status-completed">
+                                            Within Budget
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+
+                <div class="empty-state-icon">
+                    —
+                </div>
+
+                <h3>
+                    No phase analysis data available
+                </h3>
+
+                <p>
+                    No construction phases have been configured for this
+                    project yet.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Construction Performance Analytics
+            </h2>
+
+            <p>
+                Visual analysis of phase completion and financial
+                utilization.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="dashboard-chart-grid">
+
+        <div class="card chart-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h3>
+                        Phase Progress
+                    </h3>
+
+                    <p>
+                        Completion percentage by construction phase.
+                    </p>
+
+                </div>
+
+            </div>
+
 
             <div class="chart-container">
 
@@ -206,10 +529,28 @@
                 ></canvas>
 
             </div>
-        </section>
 
-        <section>
-            <h3>Phase Budget Utilization</h3>
+        </div>
+
+
+        <div class="card chart-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h3>
+                        Budget Utilization
+                    </h3>
+
+                    <p>
+                        Percentage of allocated budget consumed by phase.
+                    </p>
+
+                </div>
+
+            </div>
+
 
             <div class="chart-container">
 
@@ -220,57 +561,202 @@
                 ></canvas>
 
             </div>
-        </section>
 
-        <section>
-            <h3>Cost Escalation Over Time</h3>
+        </div>
 
-            <p>
-                This analytical trend shows actual construction
-                expenditure accumulated over time based on recorded
-                project expenses.
-            </p>
+    </div>
 
-            <div class="chart-container">
+</section>
 
-                <canvas
-                    id="costEscalationChart"
-                    data-months='{{ cost_escalation | map(attribute="month") | list | tojson }}'
-                    data-monthly-cost='{{ cost_escalation | map(attribute="monthly_cost") | map("float") | list | tojson }}'
-                    data-cumulative-cost='{{ cost_escalation | map(attribute="cumulative_cost") | map("float") | list | tojson }}'
-                ></canvas>
+
+<section class="section-block">
+
+    <div class="card chart-card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h3>
+                    Construction Cost Escalation Over Time
+                </h3>
+
+                <p>
+                    Monthly construction expenditure and cumulative project
+                    cost based on recorded expense transactions.
+                </p>
 
             </div>
-        </section>
 
-        <section>
+        </div>
+
+
+        <div class="chart-container chart-container-large">
+
+            <canvas
+                id="costEscalationChart"
+                data-months='{{ cost_escalation | map(attribute="month") | list | tojson }}'
+                data-monthly-cost='{{ cost_escalation | map(attribute="monthly_cost") | map("float") | list | tojson }}'
+                data-cumulative-cost='{{ cost_escalation | map(attribute="cumulative_cost") | map("float") | list | tojson }}'
+            ></canvas>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Analysis Workspace
+            </h2>
 
             <p>
-                <a href="{{ url_for(
-                    'projects.detail',
-                    project_id=project.id
-                ) }}">
-                    ← Back to Project
-                </a>
+                Continue reviewing the project's operational and financial
+                information.
             </p>
 
-        </section>
+        </div>
 
-    </main>
+    </div>
 
-    <script
-        src="{{ url_for(
-            'static',
-            filename='vendor/chart.umd.min.js'
-        ) }}"
-    ></script>
 
-    <script
-        src="{{ url_for(
-            'static',
-            filename='js/phase_analysis.js'
-        ) }}"
-    ></script>
+    <div class="module-grid">
 
-</body>
-</html>
+        <a
+            href="{{ url_for(
+                'projects.detail',
+                project_id=project.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                P
+            </div>
+
+            <div>
+
+                <h3>
+                    Project Overview
+                </h3>
+
+                <p>
+                    Review project budget, expenses, phases and overall
+                    performance.
+                </p>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for(
+                'phases.list_phases',
+                project_id=project.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                H
+            </div>
+
+            <div>
+
+                <h3>
+                    Construction Phases
+                </h3>
+
+                <p>
+                    Review individual phase budgets, progress and status.
+                </p>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for(
+                'expenses.list_expenses',
+                project_id=project.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                ₹
+            </div>
+
+            <div>
+
+                <h3>
+                    Expense Register
+                </h3>
+
+                <p>
+                    Review recorded construction expenses and payment
+                    information.
+                </p>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for('main.dashboard') }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                D
+            </div>
+
+            <div>
+
+                <h3>
+                    Management Dashboard
+                </h3>
+
+                <p>
+                    Return to the portfolio-level management dashboard.
+                </p>
+
+            </div>
+
+        </a>
+
+    </div>
+
+</section>
+
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='vendor/chart.umd.min.js'
+    ) }}"
+></script>
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/phase_analysis.js'
+    ) }}"
+></script>
+
+{% endblock %}

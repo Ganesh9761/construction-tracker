@@ -1,50 +1,158 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-    <title>
-        Add Progress Update - {{ phase.name }}
-    </title>
-</head>
+{% block title %}Record Progress - {{ phase.name }}{% endblock %}
 
-<body>
+{% block content %}
 
-    <main>
+<div class="page-header">
 
-        <h1>Construction Tracker</h1>
+    <div>
 
-        <h2>Add Progress Update</h2>
+        <div class="breadcrumb">
 
-        <p>
-            <strong>Project:</strong>
-            {{ project.name }}
+            <a href="{{ url_for('projects.list_projects') }}">
+                Projects
+            </a>
+
+            <span>/</span>
+
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
+                {{ project.name }}
+            </a>
+
+            <span>/</span>
+
+            <a href="{{ url_for(
+                'progress.list_progress',
+                project_id=project.id,
+                phase_id=phase.id
+            ) }}">
+                {{ phase.name }} Progress
+            </a>
+
+            <span>/</span>
+
+            <strong>New Update</strong>
+
+        </div>
+
+        <h1 class="page-title">
+            Record Progress Update
+        </h1>
+
+        <p class="page-subtitle">
+            Record the latest completion percentage and site progress
+            information for the {{ phase.name }} construction phase.
         </p>
 
-        <p>
-            <strong>Phase:</strong>
-            {{ phase.name }}
-        </p>
+    </div>
 
-        <hr>
+</div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
 
-                {% for category, message in messages %}
+<section class="section-block">
 
-                    <p>
-                        <strong>{{ category|title }}:</strong>
-                        {{ message }}
-                    </p>
+    <div class="metric-grid">
 
-                {% endfor %}
+        <div class="metric-card">
 
-            {% endif %}
-        {% endwith %}
+            <div class="metric-label">
+                Construction Phase
+            </div>
 
-        <form method="POST">
+            <div class="metric-value">
+                {{ phase.name }}
+            </div>
+
+            <div class="metric-meta">
+                Current project phase
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Current Completion
+            </div>
+
+            <div class="metric-value">
+                {{ "%.1f"|format(phase.completion_percentage|float) }}%
+            </div>
+
+            <div class="metric-meta">
+                Existing recorded completion
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Phase Status
+            </div>
+
+            <div class="metric-value">
+
+                <span class="status-badge status-{{ phase.status.replace('_', '-') }}">
+                    {{ phase.status|replace("_", " ")|title }}
+                </span>
+
+            </div>
+
+            <div class="metric-meta">
+                Current construction state
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Project
+            </div>
+
+            <div class="metric-value">
+                {{ project.name }}
+            </div>
+
+            <div class="metric-meta">
+                Parent construction project
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="card form-card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h3>
+                    Progress Update
+                </h3>
+
+                <p>
+                    Enter the latest verified completion percentage and
+                    supporting site notes.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <form method="POST" class="form-layout">
 
             <input
                 type="hidden"
@@ -52,79 +160,233 @@
                 value="{{ csrf_token() }}"
             >
 
-            <div>
 
-                <label for="completion_percentage">
-                    Completion Percentage
-                </label>
+            <div class="form-section">
 
-                <br>
+                <div class="form-section-header">
 
-                <input
-                    type="number"
-                    id="completion_percentage"
-                    name="completion_percentage"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value="{{ phase.completion_percentage }}"
-                    required
+                    <h3>
+                        Completion Information
+                    </h3>
+
+                    <p>
+                        The completion percentage should represent the
+                        current physical progress of the phase.
+                    </p>
+
+                </div>
+
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label
+                            for="completion_percentage"
+                            class="form-label"
+                        >
+                            Completion Percentage
+                            <span class="required-indicator">*</span>
+                        </label>
+
+                        <input
+                            type="number"
+                            id="completion_percentage"
+                            name="completion_percentage"
+                            class="form-control"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value="{{ request.form.get('completion_percentage', phase.completion_percentage) }}"
+                            placeholder="0.00"
+                            required
+                        >
+
+                        <div class="form-help">
+                            Enter a value between 0% and 100%.
+                            Current completion is
+                            {{ "%.1f"|format(phase.completion_percentage|float) }}%.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-section">
+
+                <div class="form-section-header">
+
+                    <h3>
+                        Site Progress Notes
+                    </h3>
+
+                    <p>
+                        Add useful information that explains the progress
+                        update and supports future project review.
+                    </p>
+
+                </div>
+
+
+                <div class="form-grid">
+
+                    <div class="form-group full-width">
+
+                        <label
+                            for="notes"
+                            class="form-label"
+                        >
+                            Progress Notes
+                        </label>
+
+                        <textarea
+                            id="notes"
+                            name="notes"
+                            class="form-control"
+                            rows="7"
+                            placeholder="Example: Foundation excavation completed for Block A. Reinforcement work started for the next section."
+                        >{{ request.form.get('notes', '') }}</textarea>
+
+                        <div class="form-help">
+                            Include relevant construction activities,
+                            completed work, site observations or milestones.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-actions">
+
+                <a
+                    href="{{ url_for(
+                        'progress.list_progress',
+                        project_id=project.id,
+                        phase_id=phase.id
+                    ) }}"
+                    class="button button-secondary"
                 >
+                    Cancel
+                </a>
 
-                %
-
-            </div>
-
-            <br>
-
-            <div>
-
-                <label for="notes">
-                    Progress Notes
-                </label>
-
-                <br>
-
-                <textarea
-                    id="notes"
-                    name="notes"
-                    rows="5"
-                    cols="60"
-                    placeholder="Describe the work completed..."
-                ></textarea>
+                <button
+                    type="submit"
+                    class="button button-primary"
+                >
+                    Save Progress Update
+                </button>
 
             </div>
-
-            <br>
-
-            <button type="submit">
-                Save Progress Update
-            </button>
 
         </form>
 
-        <hr>
+    </div>
 
-        <p>
-            <a href="{{ url_for(
+</section>
+
+
+<section class="section-block">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Progress Recording Guidance
+            </h2>
+
+            <p>
+                Keep progress records consistent and useful for project
+                management.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="module-grid">
+
+        <div class="module-card">
+
+            <div class="module-card-icon">
+                %
+            </div>
+
+            <div>
+
+                <h3>
+                    Use Verified Completion
+                </h3>
+
+                <p>
+                    Record the percentage that accurately reflects the
+                    physical progress of the construction phase.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="module-card">
+
+            <div class="module-card-icon">
+                N
+            </div>
+
+            <div>
+
+                <h3>
+                    Add Useful Notes
+                </h3>
+
+                <p>
+                    Describe completed work, milestones, site conditions
+                    or important observations.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <a
+            href="{{ url_for(
                 'progress.list_progress',
                 project_id=project.id,
                 phase_id=phase.id
-            ) }}">
-                Back to Progress History
-            </a>
-        </p>
+            ) }}"
+            class="module-card"
+        >
 
-        <p>
-            <a href="{{ url_for(
-                'phases.list_phases',
-                project_id=project.id
-            ) }}">
-                Back to Construction Phases
-            </a>
-        </p>
+            <div class="module-card-icon">
+                H
+            </div>
 
-    </main>
+            <div>
 
-</body>
-</html>
+                <h3>
+                    View Progress History
+                </h3>
+
+                <p>
+                    Review previous completion updates after saving the
+                    current record.
+                </p>
+
+            </div>
+
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

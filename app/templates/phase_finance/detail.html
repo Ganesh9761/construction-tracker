@@ -1,162 +1,599 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-    <title>
-        {{ phase.name }} - Financial Summary
-    </title>
-</head>
+{% block title %}Financial Control - {{ phase.name }}{% endblock %}
 
-<body>
+{% block content %}
 
-    <main>
+<div class="page-header">
 
-        <h1>Construction Tracker</h1>
+    <div>
 
-        <h2>Phase Financial Summary</h2>
+        <div class="breadcrumb">
 
-        <p>
-            <strong>Project:</strong>
-            {{ project.name }}
-        </p>
-
-        <p>
-            <strong>Phase:</strong>
-            {{ phase.name }}
-        </p>
-
-        <hr>
-
-        <h3>Financial Overview</h3>
-
-        <table border="1" cellpadding="8" cellspacing="0">
-
-            <tr>
-                <th>Allocated Budget</th>
-                <td>
-                    ₹{{ "{:,.2f}".format(
-                        financial_summary.allocated_budget
-                    ) }}
-                </td>
-            </tr>
-
-            <tr>
-                <th>Actual Cost</th>
-                <td>
-                    ₹{{ "{:,.2f}".format(
-                        financial_summary.actual_cost
-                    ) }}
-                </td>
-            </tr>
-
-            <tr>
-                <th>Remaining Budget</th>
-                <td>
-                    ₹{{ "{:,.2f}".format(
-                        financial_summary.remaining_budget
-                    ) }}
-                </td>
-            </tr>
-
-            <tr>
-                <th>Budget Variance</th>
-                <td>
-                    ₹{{ "{:,.2f}".format(
-                        financial_summary.budget_variance
-                    ) }}
-                </td>
-            </tr>
-
-            <tr>
-                <th>Budget Utilization</th>
-                <td>
-                    {{ "{:.2f}".format(
-                        financial_summary.budget_utilization
-                    ) }}%
-                </td>
-            </tr>
-
-            <tr>
-                <th>Budget Status</th>
-                <td>
-                    {% if financial_summary.is_over_budget %}
-                        OVER BUDGET
-                    {% else %}
-                        Within Budget
-                    {% endif %}
-                </td>
-            </tr>
-
-        </table>
-
-        <hr>
-
-        <h3>Phase Progress</h3>
-
-        <p>
-            <strong>Completion:</strong>
-            {{ "{:.2f}".format(
-                phase.completion_percentage
-            ) }}%
-        </p>
-
-        <p>
-            <strong>Status:</strong>
-            {{ phase.status|replace("_", " ")|title }}
-        </p>
-
-        <hr>
-
-        <h3>Phase Modules</h3>
-
-        <p>
-            <a href="{{ url_for(
-                'progress.list_progress',
-                project_id=project.id,
-                phase_id=phase.id
-            ) }}">
-                Progress History
+            <a href="{{ url_for('projects.list_projects') }}">
+                Projects
             </a>
-        </p>
 
-        <p>
-            <a href="{{ url_for(
-                'expenses.list_expenses',
-                project_id=project.id
-            ) }}">
-                Project Expenses
-            </a>
-        </p>
+            <span>/</span>
 
-        <hr>
-
-        <p>
-            <a href="{{ url_for(
-                'phases.list_phases',
-                project_id=project.id
-            ) }}">
-                Back to Construction Phases
-            </a>
-        </p>
-
-        <p>
             <a href="{{ url_for(
                 'projects.detail',
                 project_id=project.id
             ) }}">
-                Back to Project
+                {{ project.name }}
             </a>
+
+            <span>/</span>
+
+            <a href="{{ url_for(
+                'phases.list_phases',
+                project_id=project.id
+            ) }}">
+                Construction Phases
+            </a>
+
+            <span>/</span>
+
+            <strong>{{ phase.name }} Finance</strong>
+
+        </div>
+
+        <h1 class="page-title">
+            Phase Financial Control
+        </h1>
+
+        <p class="page-subtitle">
+            Monitor budget allocation, actual construction spending,
+            financial variance and cost utilization for the
+            {{ phase.name }} phase.
         </p>
 
-        <p>
-            <a href="{{ url_for('main.dashboard') }}">
-                Back to Dashboard
-            </a>
-        </p>
+    </div>
 
-    </main>
+    <div class="page-actions">
 
-</body>
-</html>
+        <a
+            href="{{ url_for(
+                'projects.detail',
+                project_id=project.id
+            ) }}"
+            class="button button-secondary"
+        >
+            Back to Project
+        </a>
+
+    </div>
+
+</div>
+
+
+<section class="section-block">
+
+    <div class="metric-grid">
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Allocated Budget
+            </div>
+
+            <div class="metric-value metric-value-currency">
+                ₹{{ "{:,.2f}".format(
+                    financial_summary.allocated_budget
+                ) }}
+            </div>
+
+            <div class="metric-meta">
+                Approved phase allocation
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Actual Cost
+            </div>
+
+            <div class="metric-value metric-value-currency">
+                ₹{{ "{:,.2f}".format(
+                    financial_summary.actual_cost
+                ) }}
+            </div>
+
+            <div class="metric-meta">
+                Recorded construction spending
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Remaining Budget
+            </div>
+
+            <div class="metric-value metric-value-currency">
+                ₹{{ "{:,.2f}".format(
+                    financial_summary.remaining_budget
+                ) }}
+            </div>
+
+            <div class="metric-meta">
+                Available phase budget
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Budget Utilization
+            </div>
+
+            <div class="metric-value">
+                {{ "{:.2f}".format(
+                    financial_summary.budget_utilization
+                ) }}%
+            </div>
+
+            <div class="metric-meta">
+                Actual cost against allocation
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h3>
+                    Financial Position
+                </h3>
+
+                <p>
+                    Current relationship between the approved phase budget
+                    and recorded construction expenditure.
+                </p>
+
+            </div>
+
+            {% if financial_summary.is_over_budget %}
+
+                <span class="status-badge status-overdue">
+                    Over Budget
+                </span>
+
+            {% else %}
+
+                <span class="status-badge status-completed">
+                    Within Budget
+                </span>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="form-section">
+
+            <div class="form-section-header">
+
+                <h3>
+                    Budget Utilization
+                </h3>
+
+                <p>
+                    {{ "{:.2f}".format(
+                        financial_summary.budget_utilization
+                    ) }}% of the allocated phase budget has been consumed.
+                </p>
+
+            </div>
+
+
+            <div class="progress-track-large">
+
+                <div
+                    class="progress-fill"
+                    style="width: {{ [
+                        financial_summary.budget_utilization|float,
+                        100
+                    ]|min }}%;"
+                ></div>
+
+            </div>
+
+
+            <div class="metric-meta" style="margin-top: 10px;">
+
+                Allocated:
+                <strong>
+                    ₹{{ "{:,.2f}".format(
+                        financial_summary.allocated_budget
+                    ) }}
+                </strong>
+
+                &nbsp;•&nbsp;
+
+                Actual:
+                <strong>
+                    ₹{{ "{:,.2f}".format(
+                        financial_summary.actual_cost
+                    ) }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Financial Analysis
+            </h2>
+
+            <p>
+                Key financial control indicators for this construction
+                phase.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="metric-grid">
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Budget Variance
+            </div>
+
+            <div class="metric-value metric-value-currency">
+
+                ₹{{ "{:,.2f}".format(
+                    financial_summary.budget_variance
+                ) }}
+
+            </div>
+
+            <div class="metric-meta">
+                Difference between allocation and actual cost
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Phase Completion
+            </div>
+
+            <div class="metric-value">
+                {{ "{:.2f}".format(
+                    phase.completion_percentage
+                ) }}%
+            </div>
+
+            <div class="metric-meta">
+                Current physical completion
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Phase Status
+            </div>
+
+            <div class="metric-value">
+
+                <span class="status-badge status-{{ phase.status.replace('_', '-') }}">
+                    {{ phase.status|replace("_", " ")|title }}
+                </span>
+
+            </div>
+
+            <div class="metric-meta">
+                Current construction state
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Financial Status
+            </div>
+
+            <div class="metric-value">
+
+                {% if financial_summary.is_over_budget %}
+
+                    <span class="status-badge status-overdue">
+                        Over Budget
+                    </span>
+
+                {% else %}
+
+                    <span class="status-badge status-completed">
+                        Within Budget
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+            <div class="metric-meta">
+                Current budget control state
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Phase Management Workspace
+            </h2>
+
+            <p>
+                Access related construction, financial and progress
+                management functions.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="module-grid">
+
+        <a
+            href="{{ url_for(
+                'progress.list_progress',
+                project_id=project.id,
+                phase_id=phase.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                %
+            </div>
+
+            <div>
+
+                <h3>
+                    Progress History
+                </h3>
+
+                <p>
+                    Review completion updates and historical phase
+                    progress.
+                </p>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for(
+                'expenses.list_expenses',
+                project_id=project.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                ₹
+            </div>
+
+            <div>
+
+                <h3>
+                    Project Expenses
+                </h3>
+
+                <p>
+                    Review construction expenditures recorded against
+                    the project.
+                </p>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for(
+                'phases.list_phases',
+                project_id=project.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                P
+            </div>
+
+            <div>
+
+                <h3>
+                    Construction Phases
+                </h3>
+
+                <p>
+                    Review phase allocation, completion and construction
+                    status.
+                </p>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for(
+                'projects.detail',
+                project_id=project.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                O
+            </div>
+
+            <div>
+
+                <h3>
+                    Project Overview
+                </h3>
+
+                <p>
+                    Return to the complete project financial and progress
+                    overview.
+                </p>
+
+            </div>
+
+        </a>
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h3>
+                    Financial Control Interpretation
+                </h3>
+
+                <p>
+                    Reference information for reviewing the phase's
+                    financial position.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="module-grid">
+
+            <div class="module-card">
+
+                <div class="module-card-icon">
+                    B
+                </div>
+
+                <div>
+
+                    <h3>
+                        Budget
+                    </h3>
+
+                    <p>
+                        The allocated budget represents the approved
+                        financial limit for this construction phase.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="module-card">
+
+                <div class="module-card-icon">
+                    A
+                </div>
+
+                <div>
+
+                    <h3>
+                        Actual Cost
+                    </h3>
+
+                    <p>
+                        Actual cost represents recorded construction
+                        expenses assigned to the phase.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="module-card">
+
+                <div class="module-card-icon">
+                    V
+                </div>
+
+                <div>
+
+                    <h3>
+                        Variance
+                    </h3>
+
+                    <p>
+                        Budget variance indicates the remaining financial
+                        difference between allocation and actual spending.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

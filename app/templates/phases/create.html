@@ -1,171 +1,186 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Phase - {{ project.name }}</title>
-</head>
-<body>
-    <main>
-        <h1>Construction Tracker</h1>
+{% extends "base.html" %}
 
-        <h2>Add Construction Phase</h2>
+{% block title %}Add Phase - {{ project.name }}{% endblock %}
 
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="{{ url_for('projects.list_projects') }}">Projects</a>
+            <span>/</span>
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
+                {{ project.name }}
+            </a>
+            <span>/</span>
+            <span>Add Phase</span>
+        </div>
+
+        <h1>Add Construction Phase</h1>
         <p>
-            <strong>Project:</strong>
-            {{ project.name }}
+            Define the schedule, budget, progress, and status for a new
+            construction phase.
         </p>
+    </div>
 
-        <p>
-            <strong>Client:</strong>
-            {{ project.client_name }}
-        </p>
+    <div class="page-actions">
+        <a
+            href="{{ url_for('phases.list_phases', project_id=project.id) }}"
+            class="button button-secondary"
+        >
+            Back to Phases
+        </a>
+    </div>
+</div>
 
-        <hr>
+<div class="card form-card">
+    <div class="card-header">
+        <div>
+            <h2>Phase Information</h2>
+            <p>
+                Project:
+                <strong>{{ project.name }}</strong>
+            </p>
+        </div>
+    </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    <form method="POST" class="form-grid">
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
 
-        <form method="POST">
-
+        <div class="form-group form-group-full">
+            <label for="name">Phase Name</label>
             <input
-                type="hidden"
-                name="csrf_token"
-                value="{{ csrf_token() }}"
+                type="text"
+                id="name"
+                name="name"
+                required
+                maxlength="120"
+                placeholder="e.g. Foundation"
+                value="{{ request.form.get('name', '') }}"
             >
+            <small>
+                Use a clear construction phase name.
+            </small>
+        </div>
 
-            <div>
-                <label for="name">Phase Name</label>
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    maxlength="120"
-                    placeholder="e.g. Foundation"
+        <div class="form-group form-group-full">
+            <label for="description">Description</label>
+            <textarea
+                id="description"
+                name="description"
+                rows="4"
+                placeholder="Describe the construction work included in this phase"
+            >{{ request.form.get('description', '') }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="allocated_budget">Allocated Budget (₹)</label>
+            <input
+                type="number"
+                id="allocated_budget"
+                name="allocated_budget"
+                min="0.01"
+                step="0.01"
+                required
+                placeholder="8000000"
+                value="{{ request.form.get('allocated_budget', '') }}"
+            >
+            <small>
+                Must fit within the remaining project budget.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="completion_percentage">Completion Percentage</label>
+            <input
+                type="number"
+                id="completion_percentage"
+                name="completion_percentage"
+                min="0"
+                max="100"
+                step="0.01"
+                value="{{ request.form.get('completion_percentage', '0') }}"
+                required
+            >
+            <small>
+                Enter a value between 0% and 100%.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="start_date">Start Date</label>
+            <input
+                type="date"
+                id="start_date"
+                name="start_date"
+                value="{{ request.form.get('start_date', '') }}"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="expected_completion_date">
+                Expected Completion Date
+            </label>
+            <input
+                type="date"
+                id="expected_completion_date"
+                name="expected_completion_date"
+                value="{{ request.form.get('expected_completion_date', '') }}"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="status">Phase Status</label>
+            <select id="status" name="status" required>
+                {% set selected_status = request.form.get('status', 'not_started') %}
+
+                <option
+                    value="not_started"
+                    {% if selected_status == 'not_started' %}selected{% endif %}
                 >
-            </div>
+                    Not Started
+                </option>
 
-            <br>
-
-            <div>
-                <label for="description">Description</label>
-                <textarea
-                    id="description"
-                    name="description"
-                    rows="4"
-                    placeholder="Describe the construction work for this phase"
-                ></textarea>
-            </div>
-
-            <br>
-
-            <div>
-                <label for="allocated_budget">
-                    Allocated Budget (₹)
-                </label>
-                <input
-                    type="number"
-                    id="allocated_budget"
-                    name="allocated_budget"
-                    min="0.01"
-                    step="0.01"
-                    required
-                    placeholder="8000000"
+                <option
+                    value="in_progress"
+                    {% if selected_status == 'in_progress' %}selected{% endif %}
                 >
-            </div>
+                    In Progress
+                </option>
 
-            <br>
-
-            <div>
-                <label for="start_date">Start Date</label>
-                <input
-                    type="date"
-                    id="start_date"
-                    name="start_date"
-                    required
+                <option
+                    value="on_hold"
+                    {% if selected_status == 'on_hold' %}selected{% endif %}
                 >
-            </div>
+                    On Hold
+                </option>
 
-            <br>
-
-            <div>
-                <label for="expected_completion_date">
-                    Expected Completion Date
-                </label>
-                <input
-                    type="date"
-                    id="expected_completion_date"
-                    name="expected_completion_date"
-                    required
+                <option
+                    value="completed"
+                    {% if selected_status == 'completed' %}selected{% endif %}
                 >
-            </div>
+                    Completed
+                </option>
+            </select>
+        </div>
 
-            <br>
+        <div class="form-actions form-group-full">
+            <a
+                href="{{ url_for('phases.list_phases', project_id=project.id) }}"
+                class="button button-secondary"
+            >
+                Cancel
+            </a>
 
-            <div>
-                <label for="completion_percentage">
-                    Completion Percentage
-                </label>
-                <input
-                    type="number"
-                    id="completion_percentage"
-                    name="completion_percentage"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value="0"
-                    required
-                >
-            </div>
-
-            <br>
-
-            <div>
-                <label for="status">Phase Status</label>
-                <select id="status" name="status" required>
-                    <option value="not_started">
-                        Not Started
-                    </option>
-                    <option value="in_progress">
-                        In Progress
-                    </option>
-                    <option value="on_hold">
-                        On Hold
-                    </option>
-                    <option value="completed">
-                        Completed
-                    </option>
-                </select>
-            </div>
-
-            <br>
-
-            <button type="submit">
+            <button type="submit" class="button button-primary">
                 Add Construction Phase
             </button>
-
-        </form>
-
-        <hr>
-
-        <p>
-            <a href="{{ url_for('phases.list_phases', project_id=project.id) }}">
-                Back to Construction Phases
-            </a>
-        </p>
-
-        <p>
-            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
-                Back to Project
-            </a>
-        </p>
-
-    </main>
-</body>
-</html>
+        </div>
+    </form>
+</div>
+{% endblock %}

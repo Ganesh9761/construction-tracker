@@ -1,53 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ project.name }} - Construction Phases</title>
-</head>
-<body>
-    <main>
-        <h1>Construction Tracker</h1>
+{% extends "base.html" %}
 
-        <h2>{{ project.name }}</h2>
+{% block title %}Construction Phases - {{ project.name }}{% endblock %}
 
-        <p>
-            <strong>Client:</strong>
-            {{ project.client_name }}
-        </p>
-
-        <p>
-            <strong>Location:</strong>
-            {{ project.location }}
-        </p>
-
-        <hr>
-
-        <h3>Construction Phases</h3>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <p>
-            <a href="{{ url_for('phases.create', project_id=project.id) }}">
-                Add Construction Phase
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="{{ url_for('projects.list_projects') }}">Projects</a>
+            <span>/</span>
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
+                {{ project.name }}
             </a>
-        </p>
+            <span>/</span>
+            <span>Phases</span>
+        </div>
 
-        {% if phases %}
-            <table border="1">
+        <h1>Construction Phases</h1>
+        <p>
+            Manage construction phases, budgets, schedules, progress, and
+            current status for this project.
+        </p>
+    </div>
+
+    <div class="page-actions">
+        {% if current_user.role in ["admin", "project_manager"] %}
+            <a
+                href="{{ url_for('phases.create', project_id=project.id) }}"
+                class="button button-primary"
+            >
+                + Add Phase
+            </a>
+        {% endif %}
+
+        <a
+            href="{{ url_for('projects.detail', project_id=project.id) }}"
+            class="button button-secondary"
+        >
+            Project Overview
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h2>{{ project.name }}</h2>
+            <p>
+                {{ project.client_name }} · {{ project.location }}
+            </p>
+        </div>
+
+        <div>
+            <span class="status-badge status-{{ project.status }}">
+                {{ project.status|replace("_", " ")|title }}
+            </span>
+        </div>
+    </div>
+
+    {% if phases %}
+        <div class="table-wrapper">
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Phase</th>
-                        <th>Budget</th>
-                        <th>Start Date</th>
-                        <th>Expected Completion</th>
+                        <th>Allocated Budget</th>
+                        <th>Schedule</th>
                         <th>Progress</th>
                         <th>Status</th>
                     </tr>
@@ -56,44 +73,77 @@
                 <tbody>
                     {% for phase in phases %}
                         <tr>
-                            <td>{{ phase.id }}</td>
-                            <td>{{ phase.name }}</td>
                             <td>
-                                ₹{{ "{:,.2f}".format(phase.allocated_budget) }}
+                                <strong>{{ phase.name }}</strong>
+
+                                {% if phase.description %}
+                                    <div class="table-secondary-text">
+                                        {{ phase.description }}
+                                    </div>
+                                {% endif %}
                             </td>
-                            <td>{{ phase.start_date }}</td>
-                            <td>{{ phase.expected_completion_date }}</td>
-                            <td>{{ phase.completion_percentage }}%</td>
+
                             <td>
-                                {{ phase.status|replace("_", " ")|title }}
+                                <strong>
+                                    ₹{{ "{:,.2f}".format(phase.allocated_budget) }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                <div>
+                                    {{ phase.start_date }}
+                                </div>
+                                <div class="table-secondary-text">
+                                    to {{ phase.expected_completion_date }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="progress-wrapper">
+                                    <div class="progress-label">
+                                        <span>
+                                            {{ phase.completion_percentage }}%
+                                        </span>
+                                    </div>
+
+                                    <div class="progress-track">
+                                        <div
+                                            class="progress-fill"
+                                            style="width: {{ phase.completion_percentage }}%;"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="status-badge status-{{ phase.status|replace("_", "-") }}">
+                                    {{ phase.status|replace("_", " ")|title }}
+                                </span>
                             </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        {% else %}
-            <p>No construction phases have been added yet.</p>
-        {% endif %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">+</div>
 
-        <hr>
+            <h3>No Construction Phases</h3>
 
-        <p>
-            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
-                Back to Project
-            </a>
-        </p>
+            <p>
+                No construction phases have been added to this project yet.
+            </p>
 
-        <p>
-            <a href="{{ url_for('projects.list_projects') }}">
-                Back to Projects
-            </a>
-        </p>
-
-        <p>
-            <a href="{{ url_for('main.dashboard') }}">
-                Back to Dashboard
-            </a>
-        </p>
-    </main>
-</body>
-</html>
+            {% if current_user.role in ["admin", "project_manager"] %}
+                <a
+                    href="{{ url_for('phases.create', project_id=project.id) }}"
+                    class="button button-primary"
+                >
+                    Add First Phase
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

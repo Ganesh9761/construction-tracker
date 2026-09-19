@@ -1,43 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-    <title>Edit Expense - {{ project.name }}</title>
-</head>
+{% block title %}Edit Expense #{{ expense.id }} - {{ project.name }}{% endblock %}
 
-<body>
+{% block content %}
 
-    <main>
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="{{ url_for('projects.list_projects') }}">Projects</a>
+            <span>/</span>
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
+                {{ project.name }}
+            </a>
+            <span>/</span>
+            <a href="{{ url_for('expenses.list_expenses', project_id=project.id) }}">
+                Expenses
+            </a>
+            <span>/</span>
+            <strong>Expense #{{ expense.id }}</strong>
+        </div>
 
-        <h1>Construction Tracker</h1>
+        <h1 class="page-title">Edit Construction Expense</h1>
 
-        <h2>Edit Expense #{{ expense.id }}</h2>
-
-        <p>
-            <strong>Project:</strong>
-            {{ project.name }}
+        <p class="page-subtitle">
+            Update the recorded financial details for Expense #{{ expense.id }}.
+            Changes will be reflected in the project's financial analysis.
         </p>
+    </div>
+</div>
 
-        <hr>
+<section class="section-block">
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
+    <div class="card form-card">
 
-                {% for category, message in messages %}
+        <div class="card-header">
+            <div>
+                <h3>Expense #{{ expense.id }}</h3>
+                <p>
+                    Review and update the existing construction expense
+                    information.
+                </p>
+            </div>
 
-                    <p>
-                        <strong>{{ category|title }}:</strong>
-                        {{ message }}
-                    </p>
+            <span class="status-badge status-{{ expense.payment_status.replace('_', '-') }}">
+                {{ expense.payment_status|replace("_", " ")|title }}
+            </span>
+        </div>
 
-                {% endfor %}
-
-            {% endif %}
-        {% endwith %}
-
-        <form method="POST">
+        <form method="POST" class="form-layout">
 
             <input
                 type="hidden"
@@ -45,189 +55,327 @@
                 value="{{ csrf_token() }}"
             >
 
-            <div>
-                <label for="expense_date">
-                    Expense Date
-                </label>
+            <div class="form-section">
 
-                <br>
+                <div class="form-section-header">
+                    <h3>Transaction Details</h3>
+                    <p>
+                        Update the date, construction phase and classification
+                        of this expenditure.
+                    </p>
+                </div>
 
-                <input
-                    type="date"
-                    id="expense_date"
-                    name="expense_date"
-                    value="{{ expense.expense_date }}"
-                    required
-                >
-            </div>
+                <div class="form-grid">
 
-            <br>
+                    <div class="form-group">
 
-            <div>
-                <label for="phase_id">
-                    Construction Phase
-                </label>
-
-                <br>
-
-                <select
-                    id="phase_id"
-                    name="phase_id"
-                    required
-                >
-
-                    {% for phase in phases %}
-
-                        <option
-                            value="{{ phase.id }}"
-                            {% if phase.id == expense.phase_id %}selected{% endif %}
+                        <label
+                            for="expense_date"
+                            class="form-label"
                         >
-                            {{ phase.name }}
-                        </option>
+                            Expense Date
+                            <span class="required-indicator">*</span>
+                        </label>
 
-                    {% endfor %}
-
-                </select>
-            </div>
-
-            <br>
-
-            <div>
-                <label for="category">
-                    Expense Category
-                </label>
-
-                <br>
-
-                <select
-                    id="category"
-                    name="category"
-                    required
-                >
-
-                    {% for category in categories %}
-
-                        <option
-                            value="{{ category }}"
-                            {% if category == expense.category %}selected{% endif %}
+                        <input
+                            type="date"
+                            id="expense_date"
+                            name="expense_date"
+                            class="form-control"
+                            value="{{ expense.expense_date }}"
+                            required
                         >
-                            {{ category|replace("_", " ")|title }}
-                        </option>
 
-                    {% endfor %}
+                        <div class="form-help">
+                            Date on which the construction expense was
+                            incurred.
+                        </div>
 
-                </select>
-            </div>
+                    </div>
 
-            <br>
+                    <div class="form-group">
 
-            <div>
-                <label for="description">
-                    Description
-                </label>
-
-                <br>
-
-                <textarea
-                    id="description"
-                    name="description"
-                    rows="4"
-                    cols="50"
-                    required
-                >{{ expense.description }}</textarea>
-            </div>
-
-            <br>
-
-            <div>
-                <label for="amount">
-                    Amount (₹)
-                </label>
-
-                <br>
-
-                <input
-                    type="number"
-                    id="amount"
-                    name="amount"
-                    min="0.01"
-                    step="0.01"
-                    value="{{ expense.amount }}"
-                    required
-                >
-            </div>
-
-            <br>
-
-            <div>
-                <label for="vendor_name">
-                    Vendor Name
-                </label>
-
-                <br>
-
-                <input
-                    type="text"
-                    id="vendor_name"
-                    name="vendor_name"
-                    maxlength="150"
-                    value="{{ expense.vendor_name }}"
-                    required
-                >
-            </div>
-
-            <br>
-
-            <div>
-                <label for="payment_status">
-                    Payment Status
-                </label>
-
-                <br>
-
-                <select
-                    id="payment_status"
-                    name="payment_status"
-                    required
-                >
-
-                    {% for status in payment_statuses %}
-
-                        <option
-                            value="{{ status }}"
-                            {% if status == expense.payment_status %}selected{% endif %}
+                        <label
+                            for="phase_id"
+                            class="form-label"
                         >
-                            {{ status|replace("_", " ")|title }}
-                        </option>
+                            Construction Phase
+                            <span class="required-indicator">*</span>
+                        </label>
 
-                    {% endfor %}
+                        <select
+                            id="phase_id"
+                            name="phase_id"
+                            class="form-control"
+                            required
+                        >
 
-                </select>
+                            {% for phase in phases %}
+
+                                <option
+                                    value="{{ phase.id }}"
+                                    {% if phase.id == expense.phase_id %}selected{% endif %}
+                                >
+                                    {{ phase.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        <div class="form-help">
+                            Phase against which this expense is allocated.
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label
+                            for="category"
+                            class="form-label"
+                        >
+                            Expense Category
+                            <span class="required-indicator">*</span>
+                        </label>
+
+                        <select
+                            id="category"
+                            name="category"
+                            class="form-control"
+                            required
+                        >
+
+                            {% for category in categories %}
+
+                                <option
+                                    value="{{ category }}"
+                                    {% if category == expense.category %}selected{% endif %}
+                                >
+                                    {{ category|replace("_", " ")|title }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        <div class="form-help">
+                            Classification used for expense analysis and
+                            reporting.
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label
+                            for="payment_status"
+                            class="form-label"
+                        >
+                            Payment Status
+                            <span class="required-indicator">*</span>
+                        </label>
+
+                        <select
+                            id="payment_status"
+                            name="payment_status"
+                            class="form-control"
+                            required
+                        >
+
+                            {% for status in payment_statuses %}
+
+                                <option
+                                    value="{{ status }}"
+                                    {% if status == expense.payment_status %}selected{% endif %}
+                                >
+                                    {{ status|replace("_", " ")|title }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        <div class="form-help">
+                            Current payment state of this expense.
+                        </div>
+
+                    </div>
+
+                </div>
+
             </div>
 
-            <br>
+            <div class="form-section">
 
-            <button type="submit">
-                Update Expense
-            </button>
+                <div class="form-section-header">
+                    <h3>Financial Details</h3>
+                    <p>
+                        Update the expenditure amount, supplier and
+                        transaction description.
+                    </p>
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label
+                            for="amount"
+                            class="form-label"
+                        >
+                            Expense Amount (₹)
+                            <span class="required-indicator">*</span>
+                        </label>
+
+                        <input
+                            type="number"
+                            id="amount"
+                            name="amount"
+                            class="form-control"
+                            min="0.01"
+                            step="0.01"
+                            value="{{ expense.amount }}"
+                            required
+                        >
+
+                        <div class="form-help">
+                            Enter the updated total transaction amount.
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label
+                            for="vendor_name"
+                            class="form-label"
+                        >
+                            Vendor / Supplier
+                            <span class="required-indicator">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            id="vendor_name"
+                            name="vendor_name"
+                            class="form-control"
+                            maxlength="150"
+                            value="{{ expense.vendor_name }}"
+                            required
+                        >
+
+                        <div class="form-help">
+                            Company, contractor or supplier associated with
+                            this expense.
+                        </div>
+
+                    </div>
+
+                    <div class="form-group full-width">
+
+                        <label
+                            for="description"
+                            class="form-label"
+                        >
+                            Expense Description
+                            <span class="required-indicator">*</span>
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            class="form-control"
+                            rows="5"
+                            required
+                        >{{ expense.description }}</textarea>
+
+                        <div class="form-help">
+                            Maintain a clear description for financial review
+                            and audit history.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+
+                <a
+                    href="{{ url_for('expenses.list_expenses', project_id=project.id) }}"
+                    class="button button-secondary"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="button button-primary"
+                >
+                    Save Changes
+                </button>
+
+            </div>
 
         </form>
 
-        <hr>
+    </div>
 
-        <p>
-            <a href="{{ url_for('expenses.list_expenses', project_id=project.id) }}">
-                Back to Expenses
-            </a>
-        </p>
+</section>
 
-        <p>
-            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
-                Back to Project
-            </a>
-        </p>
+<section class="section-block">
 
-    </main>
+    <div class="section-heading">
+        <div>
+            <h2>Expense Reference</h2>
+            <p>Current record information for audit and review.</p>
+        </div>
+    </div>
 
-</body>
-</html>
+    <div class="metric-grid">
+
+        <div class="metric-card">
+            <div class="metric-label">Expense ID</div>
+            <div class="metric-value">#{{ expense.id }}</div>
+            <div class="metric-meta">
+                Project transaction identifier
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Recorded Amount</div>
+            <div class="metric-value metric-value-currency">
+                ₹{{ "{:,.2f}".format(expense.amount) }}
+            </div>
+            <div class="metric-meta">
+                Current transaction value
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Construction Phase</div>
+            <div class="metric-value">
+                {{ expense.phase.name }}
+            </div>
+            <div class="metric-meta">
+                Current allocation
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Vendor / Supplier</div>
+            <div class="metric-value">
+                {{ expense.vendor_name }}
+            </div>
+            <div class="metric-meta">
+                Recorded supplier
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

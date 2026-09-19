@@ -1,189 +1,280 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-    <title>{{ project.name }} - Expenses</title>
-</head>
+{% block title %}Expense Management - {{ project.name }}{% endblock %}
 
-<body>
+{% block content %}
 
-    <main>
-
-        <h1>Construction Tracker</h1>
-
-        <h2>Expense Management</h2>
-
-        <p>
-            <strong>Project:</strong>
-            {{ project.name }}
-        </p>
-
-        <hr>
-
-        <p>
-            <a href="{{ url_for('expenses.create', project_id=project.id) }}">
-                Add New Expense
+<div class="page-header">
+    <div>
+        <div class="breadcrumb">
+            <a href="{{ url_for('projects.list_projects') }}">Projects</a>
+            <span>/</span>
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
+                {{ project.name }}
             </a>
+            <span>/</span>
+            <strong>Expenses</strong>
+        </div>
+
+        <h1 class="page-title">Expense Management</h1>
+
+        <p class="page-subtitle">
+            Review and manage construction expenditure recorded against
+            {{ project.name }}.
         </p>
+    </div>
 
-        <h3>Expense Records</h3>
+    <div class="page-header-actions">
+        <a
+            href="{{ url_for('projects.detail', project_id=project.id) }}"
+            class="button button-secondary"
+        >
+            Back to Project
+        </a>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
+        {% if current_user.role in ["admin", "project_manager", "site_engineer"] %}
+            <a
+                href="{{ url_for('expenses.create', project_id=project.id) }}"
+                class="button button-primary"
+            >
+                Add Expense
+            </a>
+        {% endif %}
+    </div>
+</div>
 
-                {% for category, message in messages %}
+<section class="section-block">
 
-                    <p>
-                        <strong>{{ category|title }}:</strong>
-                        {{ message }}
-                    </p>
+    <div class="section-heading">
+        <div>
+            <h2>Expense Register</h2>
+            <p>
+                {{ expenses|length }} expense record{% if expenses|length != 1 %}s{% endif %}
+                currently recorded for this project.
+            </p>
+        </div>
+    </div>
 
-                {% endfor %}
-
-            {% endif %}
-        {% endwith %}
+    <div class="card">
 
         {% if expenses %}
 
-        <table border="1" cellpadding="8" cellspacing="0">
+            <div class="table-wrapper">
+                <table class="data-table">
 
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Date</th>
-                    <th>Phase</th>
-                    <th>Category</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Vendor</th>
-                    <th>Payment Status</th>
-                    <th>Created By</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+                    <thead>
+                        <tr>
+                            <th>Expense</th>
+                            <th>Date</th>
+                            <th>Phase</th>
+                            <th>Category</th>
+                            <th>Vendor</th>
+                            <th>Amount</th>
+                            <th>Payment Status</th>
+                            <th>Created By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
 
-            <tbody>
+                    <tbody>
 
-                {% for expense in expenses %}
+                        {% for expense in expenses %}
 
-                <tr>
+                        <tr>
 
-                    <td>
-                        {{ expense.id }}
-                    </td>
+                            <td>
+                                <div class="table-primary">
+                                    Expense #{{ expense.id }}
+                                </div>
+                                <div class="table-secondary">
+                                    {{ expense.description }}
+                                </div>
+                            </td>
 
-                    <td>
-                        {{ expense.expense_date }}
-                    </td>
+                            <td>
+                                {{ expense.expense_date.strftime("%d %b %Y") }}
+                            </td>
 
-                    <td>
-                        {{ expense.phase.name }}
-                    </td>
+                            <td>
+                                {{ expense.phase.name }}
+                            </td>
 
-                    <td>
-                        {{ expense.category|replace("_", " ")|title }}
-                    </td>
+                            <td>
+                                {{ expense.category|replace("_", " ")|title }}
+                            </td>
 
-                    <td>
-                        {{ expense.description }}
-                    </td>
+                            <td>
+                                {{ expense.vendor_name }}
+                            </td>
 
-                    <td>
-                        ₹{{ "{:,.2f}".format(expense.amount) }}
-                    </td>
+                            <td>
+                                <strong>
+                                    ₹{{ "{:,.2f}".format(expense.amount) }}
+                                </strong>
+                            </td>
 
-                    <td>
-                        {{ expense.vendor_name }}
-                    </td>
+                            <td>
+                                <span class="status-badge status-{{ expense.payment_status.replace('_', '-') }}">
+                                    {{ expense.payment_status|replace("_", " ")|title }}
+                                </span>
+                            </td>
 
-                    <td>
-                        {{ expense.payment_status|replace("_", " ")|title }}
-                    </td>
+                            <td>
+                                {{ expense.creator.username }}
+                            </td>
 
-                    <td>
-                        {{ expense.creator.username }}
-                    </td>
+                            <td>
+                                <div class="table-actions">
 
-                    <td>
+                                    {% if current_user.role in ["admin", "project_manager"] %}
+                                        <a
+                                            href="{{ url_for(
+                                                'expenses.edit',
+                                                project_id=project.id,
+                                                expense_id=expense.id
+                                            ) }}"
+                                            class="button button-small button-secondary"
+                                        >
+                                            Edit
+                                        </a>
+                                    {% endif %}
 
-                        <a
-                            href="{{ url_for(
-                                'expenses.edit',
-                                project_id=project.id,
-                                expense_id=expense.id
-                            ) }}"
-                        >
-                            Edit
-                        </a>
+                                    {% if current_user.role == "admin" %}
+                                        <form
+                                            method="POST"
+                                            action="{{ url_for(
+                                                'expenses.delete',
+                                                project_id=project.id,
+                                                expense_id=expense.id
+                                            ) }}"
+                                            onsubmit="return confirm(
+                                                'Delete Expense #{{ expense.id }}? This action cannot be undone.'
+                                            );"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token() }}"
+                                            >
 
-                        <br>
+                                            <button
+                                                type="submit"
+                                                class="button button-small button-danger"
+                                            >
+                                                Delete
+                                            </button>
+                                        </form>
+                                    {% endif %}
 
-                        <form
-                            method="POST"
-                            action="{{ url_for(
-                                'expenses.delete',
-                                project_id=project.id,
-                                expense_id=expense.id
-                            ) }}"
-                            style="display: inline;"
-                            onsubmit="return confirm(
-                                'Are you sure you want to delete Expense #{{ expense.id }}?'
-                            );"
-                        >
+                                </div>
+                            </td>
 
-                            <input
-                                type="hidden"
-                                name="csrf_token"
-                                value="{{ csrf_token() }}"
-                            >
+                        </tr>
 
-                            <button type="submit">
-                                Delete
-                            </button>
+                        {% endfor %}
 
-                        </form>
+                    </tbody>
 
-                    </td>
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
+                </table>
+            </div>
 
         {% else %}
 
-        <p>
-            No expenses have been recorded for this project yet.
-        </p>
+            <div class="empty-state">
+                <div class="empty-state-title">
+                    No expense records
+                </div>
+
+                <div class="empty-state-text">
+                    No construction expenses have been recorded for this
+                    project yet.
+                </div>
+
+                {% if current_user.role in ["admin", "project_manager", "site_engineer"] %}
+                    <div class="empty-state-actions">
+                        <a
+                            href="{{ url_for('expenses.create', project_id=project.id) }}"
+                            class="button button-primary"
+                        >
+                            Add First Expense
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
 
         {% endif %}
 
-        <hr>
+    </div>
 
-        <p>
-            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
-                Back to Project
-            </a>
-        </p>
+</section>
 
-        <p>
-            <a href="{{ url_for('phases.list_phases', project_id=project.id) }}">
-                View Construction Phases
-            </a>
-        </p>
+<section class="section-block">
 
-        <p>
-            <a href="{{ url_for('main.dashboard') }}">
-                Back to Dashboard
-            </a>
-        </p>
+    <div class="section-heading">
+        <div>
+            <h2>Expense Operations</h2>
+            <p>Additional project financial navigation.</p>
+        </div>
+    </div>
 
-    </main>
+    <div class="module-grid">
 
-</body>
-</html>
+        <a
+            href="{{ url_for('projects.detail', project_id=project.id) }}"
+            class="module-card"
+        >
+            <div class="module-card-title">
+                Project Overview
+            </div>
+
+            <div class="module-card-text">
+                Review project budget, construction progress and overall
+                financial performance.
+            </div>
+
+            <span class="module-card-link">
+                Open Project →
+            </span>
+        </a>
+
+        <a
+            href="{{ url_for('phases.list_phases', project_id=project.id) }}"
+            class="module-card"
+        >
+            <div class="module-card-title">
+                Construction Phases
+            </div>
+
+            <div class="module-card-text">
+                Review project phases and their allocated construction
+                budgets.
+            </div>
+
+            <span class="module-card-link">
+                Open Phases →
+            </span>
+        </a>
+
+        <a
+            href="{{ url_for('main.dashboard') }}"
+            class="module-card"
+        >
+            <div class="module-card-title">
+                Management Dashboard
+            </div>
+
+            <div class="module-card-text">
+                Return to the portfolio-level financial and construction
+                monitoring workspace.
+            </div>
+
+            <span class="module-card-link">
+                Open Dashboard →
+            </span>
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

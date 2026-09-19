@@ -1,196 +1,445 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-    <title>
-        {{ phase.name }} - Progress History
-    </title>
-</head>
+{% block title %}Progress History - {{ phase.name }}{% endblock %}
 
-<body>
+{% block content %}
 
-    <main>
+<div class="page-header">
 
-        <h1>Construction Tracker</h1>
+    <div>
 
-        <h2>Progress Tracking</h2>
-
-        <p>
-            <strong>Project:</strong>
-            {{ project.name }}
-        </p>
-
-        <p>
-            <strong>Phase:</strong>
-            {{ phase.name }}
-        </p>
-
-        <hr>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-
-                {% for category, message in messages %}
-
-                    <p>
-                        <strong>{{ category|title }}:</strong>
-                        {{ message }}
-                    </p>
-
-                {% endfor %}
-
-            {% endif %}
-        {% endwith %}
-
-        <h3>Current Progress</h3>
-
-        <table border="1" cellpadding="8" cellspacing="0">
-
-            <tr>
-                <th>Completion</th>
-                <td>
-                    {{ "{:.2f}".format(
-                        phase.completion_percentage
-                    ) }}%
-                </td>
-            </tr>
-
-            <tr>
-                <th>Status</th>
-                <td>
-                    {{ phase.status|replace("_", " ")|title }}
-                </td>
-            </tr>
-
-            <tr>
-                <th>Phase Budget</th>
-                <td>
-                    ₹{{ "{:,.2f}".format(
-                        phase.allocated_budget
-                    ) }}
-                </td>
-            </tr>
-
-            <tr>
-                <th>Start Date</th>
-                <td>
-                    {{ phase.start_date }}
-                </td>
-            </tr>
-
-            <tr>
-                <th>Expected Completion</th>
-                <td>
-                    {{ phase.expected_completion_date }}
-                </td>
-            </tr>
-
-        </table>
-
-        <hr>
-
-        <p>
-            <a href="{{ url_for(
-                'progress.create',
-                project_id=project.id,
-                phase_id=phase.id
-            ) }}">
-                Add Progress Update
+        <div class="breadcrumb">
+            <a href="{{ url_for('projects.list_projects') }}">
+                Projects
             </a>
+
+            <span>/</span>
+
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}">
+                {{ project.name }}
+            </a>
+
+            <span>/</span>
+
+            <strong>{{ phase.name }} Progress</strong>
+        </div>
+
+        <h1 class="page-title">
+            {{ phase.name }} Progress Tracking
+        </h1>
+
+        <p class="page-subtitle">
+            Monitor completion updates, historical progress and
+            construction-phase performance for this project.
         </p>
 
-        <h3>Progress History</h3>
+    </div>
 
-        {% if progress_updates %}
+    <div class="page-actions">
 
-            <table border="1" cellpadding="8" cellspacing="0">
+        {% if current_user.role in ["admin", "project_manager", "site_engineer"] %}
 
-                <thead>
-
-                    <tr>
-                        <th>ID</th>
-                        <th>Date & Time</th>
-                        <th>Completion</th>
-                        <th>Notes</th>
-                        <th>Updated By</th>
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {% for update in progress_updates %}
-
-                        <tr>
-
-                            <td>
-                                {{ update.id }}
-                            </td>
-
-                            <td>
-                                {{ update.created_at }}
-                            </td>
-
-                            <td>
-                                {{ "{:.2f}".format(
-                                    update.completion_percentage
-                                ) }}%
-                            </td>
-
-                            <td>
-                                {{ update.notes or "-" }}
-                            </td>
-
-                            <td>
-                                {{ update.updater.username }}
-                            </td>
-
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        {% else %}
-
-            <p>
-                No progress updates have been recorded
-                for this phase yet.
-            </p>
+            <a
+                href="{{ url_for(
+                    'progress.create',
+                    project_id=project.id,
+                    phase_id=phase.id
+                ) }}"
+                class="button button-primary"
+            >
+                Record Progress
+            </a>
 
         {% endif %}
 
-        <hr>
-
-        <p>
-            <a href="{{ url_for(
-                'phases.list_phases',
-                project_id=project.id
-            ) }}">
-                Back to Construction Phases
-            </a>
-        </p>
-
-        <p>
-            <a href="{{ url_for(
+        <a
+            href="{{ url_for(
                 'projects.detail',
                 project_id=project.id
-            ) }}">
-                Back to Project
-            </a>
-        </p>
+            ) }}"
+            class="button button-secondary"
+        >
+            Back to Project
+        </a>
 
-        <p>
-            <a href="{{ url_for('main.dashboard') }}">
-                Back to Dashboard
-            </a>
-        </p>
+    </div>
 
-    </main>
+</div>
 
-</body>
-</html>
+
+<section class="section-block">
+
+    <div class="metric-grid">
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Current Completion
+            </div>
+
+            <div class="metric-value">
+                {{ "%.1f"|format(phase.completion_percentage|float) }}%
+            </div>
+
+            <div class="metric-meta">
+                Latest recorded phase progress
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Phase Status
+            </div>
+
+            <div class="metric-value">
+
+                <span class="status-badge status-{{ phase.status.replace('_', '-') }}">
+                    {{ phase.status|replace("_", " ")|title }}
+                </span>
+
+            </div>
+
+            <div class="metric-meta">
+                Current construction status
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Progress Updates
+            </div>
+
+            <div class="metric-value">
+                {{ progress_updates|length }}
+            </div>
+
+            <div class="metric-meta">
+                Historical progress records
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Remaining Work
+            </div>
+
+            <div class="metric-value">
+                {{ "%.1f"|format(100 - phase.completion_percentage|float) }}%
+            </div>
+
+            <div class="metric-meta">
+                Estimated completion remaining
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Progress History
+            </h2>
+
+            <p>
+                Chronological record of phase completion updates.
+            </p>
+
+        </div>
+
+        {% if progress_updates %}
+
+            <span class="table-secondary">
+                {{ progress_updates|length }} update{% if progress_updates|length != 1 %}s{% endif %}
+            </span>
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="card">
+
+        {% if progress_updates %}
+
+            <div class="table-wrapper">
+
+                <table class="data-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Date
+                            </th>
+
+                            <th>
+                                Completion
+                            </th>
+
+                            <th>
+                                Progress
+                            </th>
+
+                            <th>
+                                Notes
+                            </th>
+
+                            <th>
+                                Updated By
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for update in progress_updates %}
+
+                            <tr>
+
+                                <td class="table-secondary">
+
+                                    {{ update.created_at.strftime("%d %b %Y") }}
+
+                                    <br>
+
+                                    <small>
+                                        {{ update.created_at.strftime("%H:%M") }}
+                                    </small>
+
+                                </td>
+
+
+                                <td class="table-primary">
+
+                                    <strong>
+                                        {{ "%.1f"|format(update.completion_percentage|float) }}%
+                                    </strong>
+
+                                </td>
+
+
+                                <td style="min-width: 220px;">
+
+                                    <div class="dashboard-progress-track">
+
+                                        <div
+                                            class="progress-fill"
+                                            style="width: {{ update.completion_percentage }}%;"
+                                        ></div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <td>
+
+                                    {% if update.notes %}
+
+                                        {{ update.notes }}
+
+                                    {% else %}
+
+                                        <span class="table-secondary">
+                                            No notes provided
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <td class="table-secondary">
+
+                                    {% if update.updated_by %}
+
+                                        {{ update.updated_by.username }}
+
+                                    {% else %}
+
+                                        System
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+
+                <div class="empty-state-icon">
+                    —
+                </div>
+
+                <h3>
+                    No progress updates recorded
+                </h3>
+
+                <p>
+                    No completion history has been recorded for this
+                    construction phase yet.
+                </p>
+
+                {% if current_user.role in ["admin", "project_manager", "site_engineer"] %}
+
+                    <a
+                        href="{{ url_for(
+                            'progress.create',
+                            project_id=project.id,
+                            phase_id=phase.id
+                        ) }}"
+                        class="button button-primary"
+                    >
+                        Record First Progress Update
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+
+<section class="section-block">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Phase Workspace
+            </h2>
+
+            <p>
+                Related project management actions.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="module-grid">
+
+        <a
+            href="{{ url_for(
+                'projects.detail',
+                project_id=project.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                P
+            </div>
+
+            <div>
+
+                <h3>
+                    Project Overview
+                </h3>
+
+                <p>
+                    Review project budget, spending, progress and
+                    construction phases.
+                </p>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for(
+                'expenses.list_expenses',
+                project_id=project.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                ₹
+            </div>
+
+            <div>
+
+                <h3>
+                    Expense Register
+                </h3>
+
+                <p>
+                    Review construction expenses associated with this
+                    project.
+                </p>
+
+            </div>
+
+        </a>
+
+
+        <a
+            href="{{ url_for(
+                'progress.create',
+                project_id=project.id,
+                phase_id=phase.id
+            ) }}"
+            class="module-card"
+        >
+
+            <div class="module-card-icon">
+                +
+            </div>
+
+            <div>
+
+                <h3>
+                    Record Progress
+                </h3>
+
+                <p>
+                    Add a new completion update for this construction phase.
+                </p>
+
+            </div>
+
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -12,7 +12,8 @@ def login(client):
         follow_redirects=False,
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/dashboard"
 
 
 def test_project_creation_creates_audit_log(app, client):
