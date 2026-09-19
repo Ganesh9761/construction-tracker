@@ -4,6 +4,7 @@ from flask_login import login_required
 from app.extensions import db
 from app.models import Project
 from app.services.project_finance_service import (
+    get_project_cost_escalation,
     get_project_phase_financials,
     get_project_progress_summary,
 )
@@ -37,9 +38,14 @@ def detail(project_id):
         project_id
     )
 
+    cost_escalation = get_project_cost_escalation(
+        project_id
+    )
+
     return render_template(
         "phase_analysis/detail.html",
         project=project,
         phase_financials=phase_financials,
         progress_summary=progress_summary,
+        cost_escalation=cost_escalation,
     )

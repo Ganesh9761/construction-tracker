@@ -1,3 +1,4 @@
+from collections import defaultdict
 from decimal import Decimal
 
 from app.extensions import db
@@ -168,3 +169,52 @@ def get_project_progress_summary(project_id):
             for phase in phases
         ),
     }
+
+
+def get_project_cost_escalation(project_id):
+    project = db.session.get(Project, project_id)
+
+    if project is None:
+        raise ValueError("Project not found.")
+
+    expenses = db.session.scalars(
+        db.select(Expense)
+        .where(
+            Expense.project_id == project_id
+        )
+        .order_by(
+            Expense.expense_date.asc(),
+            Expense.id.asc(),
+        )
+    ).all()
+
+    monthly_costs = defaultdict(
+        lambda: Decimal("0")
+    )
+
+    for expense in expenses:
+        month_key = expense.expense_date.strftime(
+            "%Y-%m"
+        )
+
+        monthly_costs[month_key] += Decimal(
+            expense.amount
+        )
+
+    cumulative_cost = Decimal("0")
+    escalation_data = []
+
+    for month, monthly_cost in sorted(
+        monthly_costs.items()
+    ):
+        cumulative_cost += monthly_cost
+
+        escalation_data.append(
+            {
+                "month": month,
+                "monthly_cost": monthly_cost,
+                "cumulative_cost": cumulative_cost,
+            }
+        )
+
+    return escalation_data

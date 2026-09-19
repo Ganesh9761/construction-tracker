@@ -223,6 +223,27 @@
         </section>
 
         <section>
+            <h3>Cost Escalation Over Time</h3>
+
+            <p>
+                This analytical trend shows actual construction
+                expenditure accumulated over time based on recorded
+                project expenses.
+            </p>
+
+            <div class="chart-container">
+
+                <canvas
+                    id="costEscalationChart"
+                    data-months='{{ cost_escalation | map(attribute="month") | list | tojson }}'
+                    data-monthly-cost='{{ cost_escalation | map(attribute="monthly_cost") | map("float") | list | tojson }}'
+                    data-cumulative-cost='{{ cost_escalation | map(attribute="cumulative_cost") | map("float") | list | tojson }}'
+                ></canvas>
+
+            </div>
+        </section>
+
+        <section>
 
             <p>
                 <a href="{{ url_for(

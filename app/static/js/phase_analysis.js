@@ -139,4 +139,109 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+
+    /*
+     * Cost Escalation Over Time Chart
+     */
+    const costEscalationChartElement = document.getElementById(
+        "costEscalationChart"
+    );
+
+    if (costEscalationChartElement) {
+
+        const months = JSON.parse(
+            costEscalationChartElement.dataset.months
+        );
+
+        const monthlyCost = JSON.parse(
+            costEscalationChartElement.dataset.monthlyCost
+        );
+
+        const cumulativeCost = JSON.parse(
+            costEscalationChartElement.dataset.cumulativeCost
+        );
+
+        new Chart(costEscalationChartElement, {
+            type: "line",
+
+            data: {
+                labels: months,
+
+                datasets: [
+                    {
+                        label: "Monthly Construction Cost",
+                        data: monthlyCost,
+                        tension: 0.25
+                    },
+                    {
+                        label: "Cumulative Construction Cost",
+                        data: cumulativeCost,
+                        tension: 0.25
+                    }
+                ]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Month"
+                        }
+                    },
+
+                    y: {
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Cost (₹)"
+                        },
+
+                        ticks: {
+                            callback: function (value) {
+                                return "₹" +
+                                    Number(value).toLocaleString("en-IN");
+                            }
+                        }
+                    }
+                },
+
+                plugins: {
+                    legend: {
+                        position: "top"
+                    },
+
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return (
+                                    context.dataset.label +
+                                    ": ₹" +
+                                    Number(
+                                        context.raw
+                                    ).toLocaleString(
+                                        "en-IN",
+                                        {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }
+                                    )
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
 });
