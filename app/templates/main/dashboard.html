@@ -29,9 +29,17 @@
                 Projects
             </a>
 
+            {% if current_user.role in ["admin", "project_manager"] %}
+            <a href="{{ url_for('audit.list_logs') }}">
+                Audit Logs
+            </a>
+            {% endif %}
+
+            {% if current_user.role == "admin" %}
             <a href="{{ url_for('users.list_users') }}">
                 Users
             </a>
+            {% endif %}
         </nav>
     </header>
 
@@ -336,6 +344,15 @@
                     Review phase-level financial analysis through
                     individual phases.
                 </li>
+
+                {% if current_user.role in ["admin", "project_manager"] %}
+                <li>
+                    <a href="{{ url_for('audit.list_logs') }}">
+                        Review system audit logs and activity history.
+                    </a>
+                </li>
+                {% endif %}
+
             </ul>
         </section>
 
