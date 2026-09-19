@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}Construction Tracker{% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/app.css') }}"
+    >
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="header-inner">
+
+            <a
+                href="{{ url_for('main.dashboard') }}"
+                class="brand"
+            >
+                <span class="brand-mark">CT</span>
+
+                <span class="brand-text">
+                    <strong>Construction Tracker</strong>
+                    <small>
+                        Project Cost &amp; Progress Management
+                    </small>
+                </span>
+            </a>
+
+            <nav
+                class="main-nav"
+                aria-label="Main navigation"
+            >
+                <a
+                    href="{{ url_for('main.dashboard') }}"
+                    class="{% if request.endpoint == 'main.dashboard' %}active{% endif %}"
+                >
+                    Dashboard
+                </a>
+
+                <a
+                    href="{{ url_for('projects.list_projects') }}"
+                    class="{% if request.endpoint and request.endpoint.startswith('projects.') %}active{% endif %}"
+                >
+                    Projects
+                </a>
+
+                {% if current_user.is_authenticated and current_user.role in ["admin", "project_manager"] %}
+                    <a
+                        href="{{ url_for('audit.list_logs') }}"
+                        class="{% if request.endpoint and request.endpoint.startswith('audit.') %}active{% endif %}"
+                    >
+                        Audit Logs
+                    </a>
+                {% endif %}
+
+                {% if current_user.is_authenticated and current_user.role == "admin" %}
+                    <a
+                        href="{{ url_for('users.list_users') }}"
+                        class="{% if request.endpoint and request.endpoint.startswith('users.') %}active{% endif %}"
+                    >
+                        Users
+                    </a>
+                {% endif %}
+            </nav>
+
+            {% if current_user.is_authenticated %}
+                <div class="user-area">
+
+                    <div class="user-details">
+                        <span class="user-name">
+                            {{ current_user.username }}
+                        </span>
+
+                        <span class="role-badge">
+                            {{ current_user.role.replace('_', ' ').title() }}
+                        </span>
+                    </div>
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('auth.logout') }}"
+                    >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+                        <button
+                            type="submit"
+                            class="button button-secondary button-small"
+                        >
+                            Logout
+                        </button>
+                    </form>
+
+                </div>
+            {% endif %}
+
+        </div>
+    </header>
+
+    <main class="app-main">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <section
+                    class="flash-stack"
+                    aria-label="Notifications"
+                >
+                    {% for category, message in messages %}
+                        <div
+                            class="flash-message flash-{{ category }}"
+                        >
+                            <span>
+                                {{ message }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+
+    </main>
+
+    <footer class="app-footer">
+        <p>
+            Construction Project Cost &amp; Progress Tracker
+        </p>
+    </footer>
+
+    {# Page-specific JavaScript can be loaded here. #}
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

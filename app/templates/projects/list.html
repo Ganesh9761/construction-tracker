@@ -1,73 +1,181 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects - Construction Tracker</title>
-</head>
-<body>
-    <main>
-        <h1>Construction Tracker</h1>
+{% extends "base.html" %}
 
-        <h2>Project Management</h2>
+{% block title %}
+    Projects - Construction Tracker
+{% endblock %}
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+{% block content %}
+
+<section class="page-header">
+    <div class="page-header-content">
+        <div>
+            <div class="breadcrumb">
+                <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                <span class="breadcrumb-separator">/</span>
+                <span>Projects</span>
+            </div>
+
+            <h1 class="page-title">
+                Project Management
+            </h1>
+
+            <p class="page-subtitle">
+                Manage construction projects, budgets, schedules,
+                clients, locations, and project status.
+            </p>
+        </div>
 
         {% if current_user.role in ["admin", "project_manager"] %}
-            <p>
-                <a href="{{ url_for('projects.create') }}">
-                    Create New Project
+            <div class="actions">
+                <a
+                    href="{{ url_for('projects.create') }}"
+                    class="button button-primary"
+                >
+                    + Create New Project
                 </a>
-            </p>
+            </div>
         {% endif %}
+    </div>
+</section>
 
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Project Name</th>
-                    <th>Client</th>
-                    <th>Location</th>
-                    <th>Start Date</th>
-                    <th>Expected Completion</th>
-                    <th>Budget</th>
-                    <th>Status</th>
-                    <th>Created By</th>
-                </tr>
-            </thead>
+<section class="card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                Construction Projects
+            </h2>
 
-            <tbody>
-                {% for project in projects %}
+            <p class="card-description">
+                Review all projects currently registered in the system.
+            </p>
+        </div>
+
+        <div class="text-muted">
+            {{ projects|length }} project{% if projects|length != 1 %}s{% endif %}
+        </div>
+    </div>
+
+    {% if projects %}
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
                     <tr>
-                        <td>{{ project.id }}</td>
-                        <td>{{ project.name }}</td>
-                        <td>{{ project.client_name }}</td>
-                        <td>{{ project.location }}</td>
-                        <td>{{ project.start_date }}</td>
-                        <td>{{ project.expected_completion_date }}</td>
-                        <td>{{ project.total_budget }}</td>
-                        <td>{{ project.status }}</td>
-                        <td>{{ project.creator.username }}</td>
+                        <th>ID</th>
+                        <th>Project</th>
+                        <th>Client</th>
+                        <th>Location</th>
+                        <th>Start Date</th>
+                        <th>Expected Completion</th>
+                        <th>Budget</th>
+                        <th>Status</th>
+                        <th>Created By</th>
+                        <th>Actions</th>
                     </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="9">No projects found.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
 
-        <p>
-            <a href="{{ url_for('main.dashboard') }}">
-                Back to Dashboard
-            </a>
-        </p>
-    </main>
-</body>
-</html>
+                <tbody>
+                    {% for project in projects %}
+                        <tr>
+                            <td>
+                                #{{ project.id }}
+                            </td>
+
+                            <td class="primary-cell">
+                                {{ project.name }}
+                            </td>
+
+                            <td>
+                                {{ project.client_name }}
+                            </td>
+
+                            <td>
+                                {{ project.location }}
+                            </td>
+
+                            <td>
+                                {{ project.start_date }}
+                            </td>
+
+                            <td>
+                                {{ project.expected_completion_date }}
+                            </td>
+
+                            <td class="primary-cell">
+                                ₹{{ "{:,.2f}".format(project.total_budget) }}
+                            </td>
+
+                            <td>
+                                <span
+                                    class="status-badge status-{{ project.status|lower|replace('_', '-') }}"
+                                >
+                                    {{ project.status.replace('_', ' ').title() }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ project.creator.username }}
+                            </td>
+
+                            <td>
+                                <a
+                                    href="{{ url_for(
+                                        'projects.detail',
+                                        project_id=project.id
+                                    ) }}"
+                                    class="button button-secondary button-small"
+                                >
+                                    View Project
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3 class="empty-state-title">
+                No projects found
+            </h3>
+
+            <p class="empty-state-text">
+                No construction projects have been registered yet.
+            </p>
+
+            {% if current_user.role in ["admin", "project_manager"] %}
+                <a
+                    href="{{ url_for('projects.create') }}"
+                    class="button button-primary"
+                >
+                    Create Your First Project
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                Project Management
+            </h2>
+
+            <p class="card-description">
+                Use individual project pages to manage phases,
+                expenses, progress, and financial analysis.
+            </p>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a
+            href="{{ url_for('main.dashboard') }}"
+            class="button button-secondary"
+        >
+            ← Back to Dashboard
+        </a>
+    </div>
+</section>
+
+{% endblock %}

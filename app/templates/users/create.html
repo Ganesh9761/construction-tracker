@@ -1,88 +1,272 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create User - Construction Tracker</title>
-</head>
-<body>
-    <main>
-        <h1>Construction Tracker</h1>
+{% extends "base.html" %}
 
-        <h2>Create User</h2>
+{% block title %}
+    Create User - Construction Tracker
+{% endblock %}
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+{% block content %}
 
-        <form method="POST">
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="{{ csrf_token() }}"
+<section class="page-header">
+    <div class="page-header-content">
+        <div>
+            <div class="breadcrumb">
+                <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                <span class="breadcrumb-separator">/</span>
+                <a href="{{ url_for('users.list_users') }}">Users</a>
+                <span class="breadcrumb-separator">/</span>
+                <span>Create User</span>
+            </div>
+
+            <h1 class="page-title">
+                Create User
+            </h1>
+
+            <p class="page-subtitle">
+                Create a new system account and assign the appropriate
+                access role.
+            </p>
+        </div>
+
+        <div class="actions">
+            <a
+                href="{{ url_for('users.list_users') }}"
+                class="button button-secondary"
             >
+                ← Back to Users
+            </a>
+        </div>
+    </div>
+</section>
 
-            <div>
-                <label for="username">Username</label>
+<section class="card form-card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                Account Information
+            </h2>
+
+            <p class="card-description">
+                Enter the user's account details and select their
+                system access level.
+            </p>
+        </div>
+    </div>
+
+    <form method="POST" class="form-layout">
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label for="username">
+                    Username
+                    <span class="required">*</span>
+                </label>
+
                 <input
                     type="text"
                     id="username"
                     name="username"
                     required
                     maxlength="80"
+                    autocomplete="username"
+                    placeholder="Enter username"
+                    value="{{ request.form.get('username', '') }}"
                 >
+
+                <small class="form-help">
+                    Use a unique username for this account.
+                </small>
             </div>
 
-            <br>
+            <div class="form-group">
+                <label for="email">
+                    Email Address
+                    <span class="required">*</span>
+                </label>
 
-            <div>
-                <label for="email">Email</label>
                 <input
                     type="email"
                     id="email"
                     name="email"
                     required
                     maxlength="120"
+                    autocomplete="email"
+                    placeholder="user@company.com"
+                    value="{{ request.form.get('email', '') }}"
                 >
+
+                <small class="form-help">
+                    Enter the user's company or authorized email address.
+                </small>
             </div>
 
-            <br>
+            <div class="form-group">
+                <label for="password">
+                    Password
+                    <span class="required">*</span>
+                </label>
 
-            <div>
-                <label for="password">Password</label>
                 <input
                     type="password"
                     id="password"
                     name="password"
                     required
+                    autocomplete="new-password"
+                    placeholder="Enter a secure password"
                 >
+
+                <small class="form-help">
+                    Use a strong password for the new account.
+                </small>
             </div>
 
-            <br>
+            <div class="form-group">
+                <label for="role">
+                    System Role
+                    <span class="required">*</span>
+                </label>
 
-            <div>
-                <label for="role">Role</label>
-                <select id="role" name="role" required>
-                    <option value="site_engineer">Site Engineer</option>
-                    <option value="project_manager">Project Manager</option>
-                    <option value="admin">Admin</option>
+                <select
+                    id="role"
+                    name="role"
+                    required
+                >
+                    <option
+                        value="site_engineer"
+                        {% if request.form.get('role', 'site_engineer') == 'site_engineer' %}
+                            selected
+                        {% endif %}
+                    >
+                        Site Engineer
+                    </option>
+
+                    <option
+                        value="project_manager"
+                        {% if request.form.get('role') == 'project_manager' %}
+                            selected
+                        {% endif %}
+                    >
+                        Project Manager
+                    </option>
+
+                    <option
+                        value="admin"
+                        {% if request.form.get('role') == 'admin' %}
+                            selected
+                        {% endif %}
+                    >
+                        Administrator
+                    </option>
                 </select>
+
+                <small class="form-help">
+                    The selected role determines the user's system permissions.
+                </small>
             </div>
 
-            <br>
+        </div>
 
-            <button type="submit">Create User</button>
-        </form>
+        <div class="form-section">
+            <div class="form-section-header">
+                <h3>
+                    Access Levels
+                </h3>
 
-        <p>
-            <a href="{{ url_for('main.dashboard') }}">
-                Back to Dashboard
+                <p>
+                    Choose the role that matches the user's responsibilities.
+                </p>
+            </div>
+
+            <div class="role-grid">
+
+                <div class="role-card">
+                    <div class="role-card-header">
+                        <span class="role-indicator role-indicator-engineer"></span>
+
+                        <h4>
+                            Site Engineer
+                        </h4>
+                    </div>
+
+                    <p>
+                        Can record construction expenses, update phase
+                        progress, view projects, and access financial analysis.
+                    </p>
+                </div>
+
+                <div class="role-card">
+                    <div class="role-card-header">
+                        <span class="role-indicator role-indicator-manager"></span>
+
+                        <h4>
+                            Project Manager
+                        </h4>
+                    </div>
+
+                    <p>
+                        Can manage projects, phases, expenses, progress,
+                        financial analysis, and audit information.
+                    </p>
+                </div>
+
+                <div class="role-card">
+                    <div class="role-card-header">
+                        <span class="role-indicator role-indicator-admin"></span>
+
+                        <h4>
+                            Administrator
+                        </h4>
+                    </div>
+
+                    <p>
+                        Has full system access including user management,
+                        project administration, financial analysis, and
+                        audit logs.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a
+                href="{{ url_for('users.list_users') }}"
+                class="button button-secondary"
+            >
+                Cancel
             </a>
-        </p>
-    </main>
-</body>
-</html>
+
+            <button
+                type="submit"
+                class="button button-primary"
+            >
+                Create User
+            </button>
+        </div>
+
+    </form>
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                Security Notice
+            </h2>
+
+            <p class="card-description">
+                User passwords are stored using secure password hashing.
+                Access to system functionality is controlled through
+                role-based permissions.
+            </p>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

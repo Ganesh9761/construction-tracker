@@ -3,19 +3,19 @@ from datetime import datetime, timezone
 from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
-from wtforms import (
-    DateField,
-    DecimalField,
-    SelectField,
-    StringField,
-    SubmitField,
-)
+from wtforms import DateField, DecimalField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, NumberRange, ValidationError
 
 from app.extensions import db
-from app.models import Project
+from app.models import Expense, Project
 from app.services.audit_service import create_audit_log
 from app.services.authorization_service import permission_required
+from app.services.project_finance_service import (
+    get_project_cost_escalation,
+    get_project_financial_summary,
+    get_project_phase_financials,
+    get_project_progress_summary,
+)
 
 
 projects_bp = Blueprint(
@@ -43,18 +43,19 @@ class ProjectForm(FlaskForm):
 
     start_date = DateField(
         "Start Date",
-        validators=[DataRequired()],
         format="%Y-%m-%d",
+        validators=[DataRequired()],
     )
 
     expected_completion_date = DateField(
         "Expected Completion Date",
-        validators=[DataRequired()],
         format="%Y-%m-%d",
+        validators=[DataRequired()],
     )
 
     total_budget = DecimalField(
         "Total Budget",
+        places=2,
         validators=[
             DataRequired(),
             NumberRange(
@@ -62,7 +63,6 @@ class ProjectForm(FlaskForm):
                 message="Budget must be zero or greater.",
             ),
         ],
-        places=2,
     )
 
     status = SelectField(
@@ -95,8 +95,7 @@ class ProjectForm(FlaskForm):
 @permission_required("view_projects")
 def list_projects():
     projects = db.session.scalars(
-        db.select(Project)
-        .order_by(Project.created_at.desc())
+        db.select(Project).order_by(Project.id)
     ).all()
 
     return render_template(
@@ -135,10 +134,7 @@ def create():
             action="create",
             entity_type="project",
             entity_id=project.id,
-            description=(
-                f"Created project "
-                f"'{project.name}'."
-            ),
+            description=f"Created project '{project.name}'.",
         )
 
         db.session.commit()
@@ -149,15 +145,25 @@ def create():
         )
 
         return redirect(
-            url_for(
-                "projects.list_projects"
-            )
+            url_for("projects.list_projects")
         )
+
+    if form.is_submitted():
+        flash(
+            "Please correct the highlighted project details.",
+            "error",
+        )
+
+        return render_template(
+            "projects/form.html",
+            form=form,
+            project=None,
+        ), 400
 
     return render_template(
         "projects/form.html",
         form=form,
-        title="Create Project",
+        project=None,
     )
 
 
@@ -173,9 +179,75 @@ def detail(project_id):
     if project is None:
         return "Project not found.", 404
 
+    financial_summary = get_project_financial_summary(
+        project_id
+    )
+
+    phase_financials = get_project_phase_financials(
+        project_id
+    )
+
+    progress_summary = get_project_progress_summary(
+        project_id
+    )
+
+    expenses = db.session.scalars(
+        db.select(Expense)
+        .where(
+            Expense.project_id == project_id
+        )
+        .order_by(
+            Expense.expense_date.asc(),
+            Expense.id.asc(),
+        )
+    ).all()
+
+    expense_category_summary = {}
+
+    for expense in expenses:
+        category = expense.category
+
+        expense_category_summary[category] = (
+            expense_category_summary.get(category, 0)
+            + expense.amount
+        )
+
+    monthly_expense_summary = {}
+
+    for expense in expenses:
+        month = expense.expense_date.strftime(
+            "%Y-%m"
+        )
+
+        monthly_expense_summary[month] = (
+            monthly_expense_summary.get(month, 0)
+            + expense.amount
+        )
+
+    monthly_expense_summary = [
+        {
+            "month": month,
+            "total": total,
+        }
+        for month, total in sorted(
+            monthly_expense_summary.items()
+        )
+    ]
+
+    cost_escalation = get_project_cost_escalation(
+        project_id
+    )
+
     return render_template(
         "projects/detail.html",
         project=project,
+        financial_summary=financial_summary,
+        phase_financials=phase_financials,
+        progress_summary=progress_summary,
+        expense_category_summary=expense_category_summary,
+        monthly_expense_summary=monthly_expense_summary,
+        cost_escalation=cost_escalation,
+        expense_count=len(expenses),
     )
 
 
@@ -215,10 +287,7 @@ def edit(project_id):
             action="update",
             entity_type="project",
             entity_id=project.id,
-            description=(
-                f"Updated project "
-                f"'{old_name}'."
-            ),
+            description=f"Updated project '{old_name}'.",
         )
 
         db.session.commit()
@@ -235,9 +304,20 @@ def edit(project_id):
             )
         )
 
+    if form.is_submitted():
+        flash(
+            "Please correct the highlighted project details.",
+            "error",
+        )
+
+        return render_template(
+            "projects/form.html",
+            form=form,
+            project=project,
+        )
+
     return render_template(
         "projects/form.html",
         form=form,
-        title="Edit Project",
         project=project,
     )

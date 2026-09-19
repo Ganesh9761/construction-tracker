@@ -1,67 +1,159 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Users - Construction Tracker</title>
-</head>
-<body>
-    <main>
-        <h1>Construction Tracker</h1>
+{% extends "base.html" %}
 
-        <h2>User Management</h2>
+{% block title %}
+    User Management - Construction Tracker
+{% endblock %}
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+{% block content %}
 
-        <p>
-            <a href="{{ url_for('users.create') }}">Create New User</a>
-        </p>
+<section class="page-header">
+    <div class="page-header-content">
+        <div>
+            <div class="breadcrumb">
+                <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                <span class="breadcrumb-separator">/</span>
+                <span>User Management</span>
+            </div>
 
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
+            <h1 class="page-title">
+                User Management
+            </h1>
 
-            <tbody>
-                {% for user in users %}
-                    <tr>
-                        <td>{{ user.id }}</td>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>{{ user.role }}</td>
-                        <td>
-                            {% if user.is_active %}
-                                Active
-                            {% else %}
-                                Inactive
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="5">No users found.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            <p class="page-subtitle">
+                Manage system users, roles, and account status.
+            </p>
+        </div>
 
-        <p>
-            <a href="{{ url_for('main.dashboard') }}">
-                Back to Dashboard
+        <div class="actions">
+            <a
+                href="{{ url_for('users.create') }}"
+                class="button button-primary"
+            >
+                + Create New User
             </a>
-        </p>
-    </main>
-</body>
-</html>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                System Users
+            </h2>
+
+            <p class="card-description">
+                Review users who have access to the Construction Tracker.
+            </p>
+        </div>
+
+        <div class="text-muted">
+            {{ users|length }}
+            user{% if users|length != 1 %}s{% endif %}
+        </div>
+    </div>
+
+    {% if users %}
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>#{{ user.id }}</td>
+
+                            <td class="primary-cell">
+                                {{ user.username }}
+                            </td>
+
+                            <td>
+                                {{ user.email }}
+                            </td>
+
+                            <td>
+                                <span
+                                    class="status-badge status-info"
+                                >
+                                    {{ user.role.replace('_', ' ').title() }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if user.is_active %}
+                                    <span
+                                        class="status-badge status-active"
+                                    >
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span
+                                        class="status-badge status-inactive"
+                                    >
+                                        Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+            <h3 class="empty-state-title">
+                No users found
+            </h3>
+
+            <p class="empty-state-text">
+                No users have been registered in the system yet.
+            </p>
+
+            <a
+                href="{{ url_for('users.create') }}"
+                class="button button-primary"
+            >
+                Create First User
+            </a>
+        </div>
+
+    {% endif %}
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                User Administration
+            </h2>
+
+            <p class="card-description">
+                User accounts control access to construction projects,
+                financial information, progress tracking, and system
+                management functions according to assigned roles.
+            </p>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a
+            href="{{ url_for('main.dashboard') }}"
+            class="button button-secondary"
+        >
+            ← Back to Dashboard
+        </a>
+    </div>
+</section>
+
+{% endblock %}

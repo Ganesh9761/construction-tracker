@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ title }} - Construction Tracker
+{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div class="page-header-content">
+
+        <div>
+            <div class="breadcrumb">
+                <a href="{{ url_for('main.dashboard') }}">
+                    Dashboard
+                </a>
+
+                <span class="breadcrumb-separator">/</span>
+
+                <a href="{{ url_for('projects.list_projects') }}">
+                    Projects
+                </a>
+
+                <span class="breadcrumb-separator">/</span>
+
+                <span>{{ title }}</span>
+            </div>
+
+            <h1 class="page-title">
+                {{ title }}
+            </h1>
+
+            <p class="page-subtitle">
+                {% if project %}
+                    Update the project details, schedule, budget,
+                    and current project status.
+                {% else %}
+                    Register a new construction project with its
+                    client, schedule, budget, and current status.
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="actions">
+            <a
+                href="{{ url_for('projects.list_projects') }}"
+                class="button button-secondary"
+            >
+                ← Back to Projects
+            </a>
+        </div>
+
+    </div>
+</section>
+
+
+{% if form.errors %}
+
+<section class="card validation-card">
+
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                Please review the form
+            </h2>
+
+            <p class="card-description">
+                One or more fields require your attention before
+                the project can be saved.
+            </p>
+        </div>
+    </div>
+
+    <ul class="validation-list">
+        {% for field in form %}
+            {% for error in field.errors %}
+                <li>
+                    <strong>{{ field.label.text }}:</strong>
+                    {{ error }}
+                </li>
+            {% endfor %}
+        {% endfor %}
+    </ul>
+
+</section>
+
+{% endif %}
+
+
+<form method="POST">
+
+    {{ form.hidden_tag() }}
+
+
+    <!-- Project Information -->
+
+    <section class="card">
+
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">
+                    Project Information
+                </h2>
+
+                <p class="card-description">
+                    Enter the core information used to identify
+                    and manage this construction project.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <div class="form-label-row">
+                    {{ form.name.label(class="form-label") }}
+                    <span class="required-indicator">*</span>
+                </div>
+
+                {{ form.name(
+                    class="form-input",
+                    placeholder="e.g. Green Valley Residential Apartments"
+                ) }}
+
+                <p class="form-help">
+                    Enter the official project name.
+                </p>
+
+                {% for error in form.name.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <div class="form-label-row">
+                    {{ form.client_name.label(class="form-label") }}
+                    <span class="required-indicator">*</span>
+                </div>
+
+                {{ form.client_name(
+                    class="form-input",
+                    placeholder="e.g. ABC Developers Pvt Ltd"
+                ) }}
+
+                <p class="form-help">
+                    Enter the client or developer responsible
+                    for the project.
+                </p>
+
+                {% for error in form.client_name.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+
+            </div>
+
+
+            <div class="form-group form-group-full">
+
+                <div class="form-label-row">
+                    {{ form.location.label(class="form-label") }}
+                    <span class="required-indicator">*</span>
+                </div>
+
+                {{ form.location(
+                    class="form-input",
+                    placeholder="e.g. Bengaluru, Karnataka"
+                ) }}
+
+                <p class="form-help">
+                    Specify the primary construction site location.
+                </p>
+
+                {% for error in form.location.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Project Schedule -->
+
+    <section class="card">
+
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">
+                    Project Schedule
+                </h2>
+
+                <p class="card-description">
+                    Define the planned project start and completion
+                    dates.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <div class="form-label-row">
+                    {{ form.start_date.label(class="form-label") }}
+                    <span class="required-indicator">*</span>
+                </div>
+
+                {{ form.start_date(
+                    class="form-input"
+                ) }}
+
+                <p class="form-help">
+                    Planned construction start date.
+                </p>
+
+                {% for error in form.start_date.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <div class="form-label-row">
+                    {{ form.expected_completion_date.label(
+                        class="form-label"
+                    ) }}
+                    <span class="required-indicator">*</span>
+                </div>
+
+                {{ form.expected_completion_date(
+                    class="form-input"
+                ) }}
+
+                <p class="form-help">
+                    Planned project completion date.
+                </p>
+
+                {% for error in form.expected_completion_date.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Financial & Status -->
+
+    <section class="card">
+
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">
+                    Financial &amp; Status Information
+                </h2>
+
+                <p class="card-description">
+                    Set the approved project budget and current
+                    lifecycle status.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <div class="form-label-row">
+                    {{ form.total_budget.label(class="form-label") }}
+                    <span class="required-indicator">*</span>
+                </div>
+
+                <div class="currency-input">
+
+                    <span class="currency-prefix">
+                        ₹
+                    </span>
+
+                    {{ form.total_budget(
+                        class="form-input currency-field",
+                        placeholder="0.00",
+                        min="0",
+                        step="0.01"
+                    ) }}
+
+                </div>
+
+                <p class="form-help">
+                    Enter the approved total project budget in
+                    Indian Rupees.
+                </p>
+
+                {% for error in form.total_budget.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <div class="form-label-row">
+                    {{ form.status.label(class="form-label") }}
+                    <span class="required-indicator">*</span>
+                </div>
+
+                {{ form.status(
+                    class="form-input form-select"
+                ) }}
+
+                <p class="form-help">
+                    Select the project's current lifecycle status.
+                </p>
+
+                {% for error in form.status.errors %}
+                    <p class="field-error">{{ error }}</p>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Form Actions -->
+
+    <section class="card form-actions-card">
+
+        <div class="form-actions">
+
+            <a
+                href="{{ url_for('projects.list_projects') }}"
+                class="button button-secondary"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="button button-primary"
+            >
+                {% if project %}
+                    Save Changes
+                {% else %}
+                    Create Project
+                {% endif %}
+            </button>
+
+        </div>
+
+    </section>
+
+</form>
+
+
+<!-- Guidance -->
+
+<section class="card">
+
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">
+                Project Management Guidance
+            </h2>
+
+            <p class="card-description">
+                Project information is used throughout the system
+                for phase tracking, expense management, progress
+                monitoring, and financial analysis.
+            </p>
+        </div>
+    </div>
+
+
+    <div class="info-grid">
+
+        <div class="info-item">
+            <span class="info-label">Project</span>
+            <span class="info-value">
+                Identity &amp; client information
+            </span>
+        </div>
+
+        <div class="info-item">
+            <span class="info-label">Schedule</span>
+            <span class="info-value">
+                Start &amp; completion dates
+            </span>
+        </div>
+
+        <div class="info-item">
+            <span class="info-label">Budget</span>
+            <span class="info-value">
+                Approved financial allocation
+            </span>
+        </div>
+
+        <div class="info-item">
+            <span class="info-label">Status</span>
+            <span class="info-value">
+                Current project lifecycle
+            </span>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,118 +1,168 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-    <title>Audit Logs - Construction Tracker</title>
+{% block title %}
+    Audit Logs - Construction Tracker
+{% endblock %}
 
-    <link
-        rel="stylesheet"
-        href="{{ url_for(
-            'static',
-            filename='css/dashboard.css'
-        ) }}"
-    >
-</head>
+{% block content %}
 
-<body>
+<section class="page-header">
+    <div class="page-header-content">
+        <div>
+            <div class="breadcrumb">
+                <a href="{{ url_for('main.dashboard') }}">
+                    Dashboard
+                </a>
 
-    <header>
-        <h1>Construction Tracker</h1>
+                <span class="breadcrumb-separator">/</span>
 
-        <nav>
-            <a href="{{ url_for('main.dashboard') }}">
-                Dashboard
-            </a>
+                <span>
+                    Audit Logs
+                </span>
+            </div>
 
-            <a href="{{ url_for('projects.list_projects') }}">
-                Projects
-            </a>
-
-            {% if current_user.role in ["admin", "project_manager"] %}
-            <a href="{{ url_for('audit.list_logs') }}">
+            <h1 class="page-title">
                 Audit Logs
+            </h1>
+
+            <p class="page-subtitle">
+                Monitor important activities and changes performed
+                across the construction management system.
+            </p>
+        </div>
+
+        <div class="actions">
+            <a
+                href="{{ url_for('main.dashboard') }}"
+                class="button button-secondary"
+            >
+                ← Back to Dashboard
             </a>
-            {% endif %}
+        </div>
+    </div>
+</section>
 
-            {% if current_user.role == "admin" %}
-            <a href="{{ url_for('users.list_users') }}">
-                Users
-            </a>
-            {% endif %}
-        </nav>
-    </header>
 
-    <main>
+<section class="metric-grid">
 
-        <section>
-            <h2>Audit Logs</h2>
+    <div class="metric-card">
+        <div class="metric-label">
+            Records Displayed
+        </div>
 
-            <p>
-                Review important actions performed across the
-                construction management system.
+        <div class="metric-value">
+            {{ audit_logs|length }}
+        </div>
+
+        <div class="metric-meta">
+            Recent system activity
+        </div>
+    </div>
+
+
+    <div class="metric-card">
+        <div class="metric-label">
+            Current User
+        </div>
+
+        <div class="metric-value metric-value-text">
+            {{ current_user.username }}
+        </div>
+
+        <div class="metric-meta">
+            {{ current_user.role.replace('_', ' ').title() }}
+        </div>
+    </div>
+
+
+    <div class="metric-card">
+        <div class="metric-label">
+            Access Level
+        </div>
+
+        <div class="metric-value metric-value-text">
+            Audit Access
+        </div>
+
+        <div class="metric-meta">
+            Authorized system activity view
+        </div>
+    </div>
+
+</section>
+
+
+<section class="card">
+
+    <div class="card-header">
+
+        <div>
+            <h2 class="card-title">
+                Recent System Activity
+            </h2>
+
+            <p class="card-description">
+                Review recent actions recorded by the application,
+                including the user, affected entity, and activity details.
             </p>
+        </div>
 
-            <p>
-                Logged in as:
-                <strong>{{ current_user.username }}</strong>
-                |
-                Role:
-                <strong>
-                    {{ current_user.role.replace(
-                        '_',
-                        ' '
-                    ).title() }}
-                </strong>
-            </p>
-        </section>
+        {% if audit_logs %}
+            <div class="text-muted">
+                {{ audit_logs|length }}
+                record{% if audit_logs|length != 1 %}s{% endif %}
+            </div>
+        {% endif %}
 
-        <section>
-            <h3>Recent System Activity</h3>
+    </div>
 
-            {% if audit_logs %}
 
-            <p>
-                Showing
-                <strong>{{ audit_logs|length }}</strong>
-                recent audit records.
-            </p>
+    {% if audit_logs %}
 
-            <div style="overflow-x: auto;">
+        <div class="table-wrapper">
 
-                <table>
-                    <thead>
+            <table class="data-table">
+
+                <thead>
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Entity ID</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for log in audit_logs %}
+
                         <tr>
-                            <th>Date & Time</th>
-                            <th>User</th>
-                            <th>Action</th>
-                            <th>Entity</th>
-                            <th>Entity ID</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
 
-                    <tbody>
-
-                        {% for log in audit_logs %}
-
-                        <tr>
-                            <td>
+                            <td class="nowrap-cell">
                                 {{ log.created_at.strftime(
                                     "%d %b %Y, %H:%M"
                                 ) }}
                             </td>
 
-                            <td>
-                                {{ log.user.username }}
-                            </td>
 
                             <td>
-                                {{ log.action.replace(
-                                    '_',
-                                    ' '
-                                ).title() }}
+                                <span class="primary-cell">
+                                    {{ log.user.username }}
+                                </span>
                             </td>
+
+
+                            <td>
+                                <span class="status-badge status-info">
+                                    {{ log.action.replace(
+                                        '_',
+                                        ' '
+                                    ).title() }}
+                                </span>
+                            </td>
+
 
                             <td>
                                 {{ log.entity_type.replace(
@@ -121,64 +171,149 @@
                                 ).title() }}
                             </td>
 
+
                             <td>
                                 {% if log.entity_id %}
-                                    #{{ log.entity_id }}
+                                    <span class="entity-id">
+                                        #{{ log.entity_id }}
+                                    </span>
                                 {% else %}
-                                    —
+                                    <span class="text-muted">
+                                        —
+                                    </span>
                                 {% endif %}
                             </td>
 
-                            <td>
+
+                            <td class="description-cell">
                                 {{ log.description }}
                             </td>
+
                         </tr>
 
-                        {% endfor %}
+                    {% endfor %}
 
-                    </tbody>
-                </table>
+                </tbody>
 
+            </table>
+
+        </div>
+
+
+        <div class="table-footer">
+
+            <span>
+                Showing
+                <strong>{{ audit_logs|length }}</strong>
+                recent audit
+                {% if audit_logs|length == 1 %}
+                    record
+                {% else %}
+                    records
+                {% endif %}
+            </span>
+
+            <span class="text-muted">
+                New activity is recorded automatically by the system.
+            </span>
+
+        </div>
+
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                ✓
             </div>
 
-            {% else %}
+            <h3 class="empty-state-title">
+                No audit activity yet
+            </h3>
 
-            <p>
-                No audit activity has been recorded yet.
+            <p class="empty-state-text">
+                No system activity has been recorded yet.
+                Audit records will appear here automatically when
+                supported actions are performed.
             </p>
 
-            {% endif %}
+        </div>
 
-        </section>
+    {% endif %}
 
-        <section>
+</section>
 
-            <a href="{{ url_for('main.dashboard') }}">
-                ← Back to Dashboard
-            </a>
 
-        </section>
+<section class="card">
 
-        <section>
+    <div class="card-header">
 
-            <form
-                method="POST"
-                action="{{ url_for('auth.logout') }}"
-            >
-                <input
-                    type="hidden"
-                    name="csrf_token"
-                    value="{{ csrf_token() }}"
-                >
+        <div>
+            <h2 class="card-title">
+                Audit Information
+            </h2>
 
-                <button type="submit">
-                    Logout
-                </button>
-            </form>
+            <p class="card-description">
+                Audit records help provide accountability by recording
+                important system actions, the affected entity, and the
+                user responsible for the activity.
+            </p>
+        </div>
 
-        </section>
+    </div>
 
-    </main>
 
-</body>
-</html>
+    <div class="info-grid">
+
+        <div class="info-item">
+            <span class="info-label">
+                Logged-in User
+            </span>
+
+            <span class="info-value">
+                {{ current_user.username }}
+            </span>
+        </div>
+
+
+        <div class="info-item">
+            <span class="info-label">
+                Role
+            </span>
+
+            <span class="info-value">
+                {{ current_user.role.replace(
+                    '_',
+                    ' '
+                ).title() }}
+            </span>
+        </div>
+
+
+        <div class="info-item">
+            <span class="info-label">
+                Records Shown
+            </span>
+
+            <span class="info-value">
+                {{ audit_logs|length }}
+            </span>
+        </div>
+
+
+        <div class="info-item">
+            <span class="info-label">
+                Retention View
+            </span>
+
+            <span class="info-value">
+                Recent activity
+            </span>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

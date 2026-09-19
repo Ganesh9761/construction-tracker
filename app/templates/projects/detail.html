@@ -1,229 +1,382 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+{% extends "base.html" %}
 
-    <title>
-        {{ project.name }} - Project Details
-    </title>
+{% block title %}
+    {{ project.name }} - Project Details
+{% endblock %}
 
-    <link
-        rel="stylesheet"
-        href="{{ url_for(
-            'static',
-            filename='css/dashboard.css'
-        ) }}"
-    >
-</head>
+{% block content %}
 
-<body>
+<section class="page-header">
+    <div class="page-header-content">
 
-    <header>
-        <h1>Construction Tracker</h1>
+        <div>
+            <div class="breadcrumb">
+                <a href="{{ url_for('main.dashboard') }}">
+                    Dashboard
+                </a>
 
-        <nav>
-            <a href="{{ url_for('main.dashboard') }}">
-                Dashboard
+                <span>/</span>
+
+                <a href="{{ url_for('projects.list_projects') }}">
+                    Projects
+                </a>
+
+                <span>/</span>
+
+                <span>{{ project.name }}</span>
+            </div>
+
+            <h1>{{ project.name }}</h1>
+
+            <p>
+                Project cost, construction progress and financial
+                performance overview.
+            </p>
+        </div>
+
+        <div class="page-header-actions">
+
+            {% if current_user.role in ["admin", "project_manager"] %}
+                <a
+                    href="{{ url_for('projects.edit', project_id=project.id) }}"
+                    class="button button-primary"
+                >
+                    Edit Project
+                </a>
+            {% endif %}
+
+            <a
+                href="{{ url_for('projects.list_projects') }}"
+                class="button button-secondary"
+            >
+                Back to Projects
             </a>
 
-            <a href="{{ url_for('projects.list_projects') }}">
-                Projects
-            </a>
+        </div>
 
-            <a href="{{ url_for('users.list_users') }}">
-                Users
-            </a>
-        </nav>
-    </header>
+    </div>
+</section>
 
-    <main>
 
-        <section>
-            <h2>Project Details</h2>
+<!-- PROJECT OVERVIEW -->
 
-            <h3>Project Information</h3>
+<section class="card">
 
-            <table>
-                <tr>
-                    <th>Project Name</th>
-                    <td>{{ project.name }}</td>
-                </tr>
+    <div class="card-header">
 
-                <tr>
-                    <th>Client</th>
-                    <td>{{ project.client_name }}</td>
-                </tr>
+        <div>
+            <h2 class="card-title">
+                Project Overview
+            </h2>
 
-                <tr>
-                    <th>Location</th>
-                    <td>{{ project.location }}</td>
-                </tr>
+            <p class="card-description">
+                Core project information and delivery schedule.
+            </p>
+        </div>
 
-                <tr>
-                    <th>Start Date</th>
-                    <td>{{ project.start_date }}</td>
-                </tr>
+        <span
+            class="status-badge status-{{ project.status.replace('_', '-') }}"
+        >
+            {{ project.status.replace('_', ' ').title() }}
+        </span>
 
-                <tr>
-                    <th>Expected Completion</th>
-                    <td>
-                        {{ project.expected_completion_date }}
-                    </td>
-                </tr>
+    </div>
 
-                <tr>
-                    <th>Status</th>
-                    <td>
-                        {{ project.status.replace(
-                            '_',
-                            ' '
-                        ).title() }}
-                    </td>
-                </tr>
 
-                <tr>
-                    <th>Total Budget</th>
-                    <td>
-                        ₹{{ "{:,.2f}".format(
-                            financial_summary.total_budget
-                        ) }}
-                    </td>
-                </tr>
-            </table>
-        </section>
+    <div class="metric-grid">
 
-        <section>
+        <div class="metric-card">
+            <div class="metric-label">
+                Client
+            </div>
 
-            <h3>Project Progress Summary</h3>
+            <div class="metric-value metric-value-small">
+                {{ project.client_name }}
+            </div>
+        </div>
 
-            <div class="kpi-grid">
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Overall Progress
-                    </div>
+        <div class="metric-card">
+            <div class="metric-label">
+                Location
+            </div>
 
-                    <div class="kpi-value">
-                        {{ "{:.2f}".format(
-                            progress_summary.overall_progress
-                        ) }}%
-                    </div>
-                </div>
+            <div class="metric-value metric-value-small">
+                {{ project.location }}
+            </div>
+        </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Total Phases
-                    </div>
 
-                    <div class="kpi-value">
-                        {{ progress_summary.total_phases }}
-                    </div>
-                </div>
+        <div class="metric-card">
+            <div class="metric-label">
+                Start Date
+            </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Completed Phases
-                    </div>
+            <div class="metric-value metric-value-small">
+                {{ project.start_date.strftime("%d %b %Y") }}
+            </div>
+        </div>
 
-                    <div class="kpi-value">
-                        {{ progress_summary.completed_phases }}
-                    </div>
-                </div>
 
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        In Progress
-                    </div>
+        <div class="metric-card">
+            <div class="metric-label">
+                Expected Completion
+            </div>
 
-                    <div class="kpi-value">
-                        {{ progress_summary.in_progress_phases }}
-                    </div>
-                </div>
+            <div class="metric-value metric-value-small">
+                {{ project.expected_completion_date.strftime("%d %b %Y") }}
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- CONSTRUCTION PROGRESS -->
+
+<section class="card">
+
+    <div class="card-header">
+
+        <div>
+            <h2 class="card-title">
+                Construction Progress
+            </h2>
+
+            <p class="card-description">
+                Overall completion calculated from phase-level progress
+                weighted by allocated phase budgets.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="metric-grid">
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Overall Progress
+            </div>
+
+            <div class="metric-value">
+                {{ "%.2f"|format(progress_summary.overall_progress) }}%
+            </div>
+
+            <div class="progress-track">
+
+                <div
+                    class="progress-fill"
+                    style="width: {{ progress_summary.overall_progress }}%;"
+                ></div>
 
             </div>
 
-        </section>
+        </div>
 
-        <section>
 
-            <h3>Financial Summary</h3>
+        <div class="metric-card">
 
-            <div class="kpi-grid">
-
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Total Budget
-                    </div>
-
-                    <div class="kpi-value">
-                        ₹{{ "{:,.2f}".format(
-                            financial_summary.total_budget
-                        ) }}
-                    </div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Actual Cost
-                    </div>
-
-                    <div class="kpi-value">
-                        ₹{{ "{:,.2f}".format(
-                            financial_summary.actual_cost
-                        ) }}
-                    </div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Remaining Budget
-                    </div>
-
-                    <div class="kpi-value">
-                        ₹{{ "{:,.2f}".format(
-                            financial_summary.remaining_budget
-                        ) }}
-                    </div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-label">
-                        Budget Utilization
-                    </div>
-
-                    <div class="kpi-value">
-                        {{ "{:.2f}".format(
-                            financial_summary.budget_utilization
-                        ) }}%
-                    </div>
-                </div>
-
+            <div class="metric-label">
+                Total Phases
             </div>
 
-        </section>
+            <div class="metric-value">
+                {{ progress_summary.total_phases }}
+            </div>
 
-        <section>
+        </div>
 
-            <h3>Phase-wise Financial Summary</h3>
 
-            <table>
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Completed Phases
+            </div>
+
+            <div class="metric-value">
+                {{ progress_summary.completed_phases }}
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                In Progress
+            </div>
+
+            <div class="metric-value">
+                {{ progress_summary.in_progress_phases }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="info-grid">
+
+        <div>
+            <span class="info-label">
+                Not Started
+            </span>
+
+            <strong>
+                {{ progress_summary.not_started_phases }}
+            </strong>
+        </div>
+
+        <div>
+            <span class="info-label">
+                On Hold
+            </span>
+
+            <strong>
+                {{ progress_summary.on_hold_phases }}
+            </strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- FINANCIAL PERFORMANCE -->
+
+<section class="card">
+
+    <div class="card-header">
+
+        <div>
+            <h2 class="card-title">
+                Financial Performance
+            </h2>
+
+            <p class="card-description">
+                Current project budget position based on recorded expenses.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="metric-grid">
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Total Budget
+            </div>
+
+            <div class="metric-value">
+                ₹{{ "{:,.2f}".format(financial_summary.total_budget) }}
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Actual Cost
+            </div>
+
+            <div class="metric-value">
+                ₹{{ "{:,.2f}".format(financial_summary.actual_cost) }}
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Remaining Budget
+            </div>
+
+            <div class="metric-value">
+                ₹{{ "{:,.2f}".format(financial_summary.remaining_budget) }}
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Budget Utilization
+            </div>
+
+            <div class="metric-value">
+                {{ "%.2f"|format(financial_summary.budget_utilization) }}%
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="progress-track">
+
+        <div
+            class="progress-fill"
+            style="width: {{ financial_summary.budget_utilization }}%;"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- PHASE FINANCIAL ANALYSIS -->
+
+<section class="card">
+
+    <div class="card-header">
+
+        <div>
+            <h2 class="card-title">
+                Phase Financial Analysis
+            </h2>
+
+            <p class="card-description">
+                Compare allocated phase budgets with actual construction
+                expenditure.
+            </p>
+        </div>
+
+        {% if current_user.role in ["admin", "project_manager"] %}
+            <a
+                href="{{ url_for('phases.list_phases', project_id=project.id) }}"
+                class="button button-secondary button-small"
+            >
+                Manage Phases
+            </a>
+        {% endif %}
+
+    </div>
+
+
+    {% if phase_financials %}
+
+        <div class="table-wrapper">
+
+            <table class="data-table">
 
                 <thead>
                     <tr>
                         <th>Phase</th>
                         <th>Allocated Budget</th>
                         <th>Actual Cost</th>
-                        <th>Remaining Budget</th>
-                        <th>Budget Utilization</th>
+                        <th>Remaining</th>
+                        <th>Utilization</th>
                         <th>Progress</th>
                         <th>Status</th>
-                        <th>Progress History</th>
-                        <th>Financial Analysis</th>
-                        <th>Phase Analysis</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
 
@@ -231,87 +384,74 @@
 
                     {% for phase in phase_financials %}
 
-                    <tr>
+                        <tr>
 
-                        <td>
-                            {{ phase.phase_name }}
-                        </td>
+                            <td>
+                                <strong>
+                                    {{ phase.phase_name }}
+                                </strong>
+                            </td>
 
-                        <td>
-                            ₹{{ "{:,.2f}".format(
-                                phase.allocated_budget
-                            ) }}
-                        </td>
+                            <td>
+                                ₹{{ "{:,.2f}".format(phase.allocated_budget) }}
+                            </td>
 
-                        <td>
-                            ₹{{ "{:,.2f}".format(
-                                phase.actual_cost
-                            ) }}
-                        </td>
+                            <td>
+                                ₹{{ "{:,.2f}".format(phase.actual_cost) }}
+                            </td>
 
-                        <td>
-                            ₹{{ "{:,.2f}".format(
-                                phase.remaining_budget
-                            ) }}
-                        </td>
+                            <td>
+                                ₹{{ "{:,.2f}".format(phase.remaining_budget) }}
+                            </td>
 
-                        <td>
-                            {{ "{:.2f}".format(
-                                phase.budget_utilization
-                            ) }}%
-                        </td>
+                            <td>
+                                {{ "%.2f"|format(phase.budget_utilization) }}%
+                            </td>
 
-                        <td>
-                            {{ "{:.2f}".format(
-                                phase.completion_percentage
-                            ) }}%
-                        </td>
+                            <td>
+                                {{ "%.2f"|format(phase.completion_percentage) }}%
+                            </td>
 
-                        <td>
-                            {{ phase.status.replace(
-                                '_',
-                                ' '
-                            ).title() }}
-                        </td>
+                            <td>
 
-                        <td>
-                            <a href="{{ url_for(
-                                'progress.list_progress',
-                                project_id=project.id,
-                                phase_id=phase.phase_id
-                            ) }}">
-                                View Progress
-                            </a>
-                        </td>
+                                <span
+                                    class="status-badge status-{{ phase.status.replace('_', '-') }}"
+                                >
+                                    {{ phase.status.replace('_', ' ').title() }}
+                                </span>
 
-                        <td>
-                            <a href="{{ url_for(
-                                'phase_finance.detail',
-                                project_id=project.id,
-                                phase_id=phase.phase_id
-                            ) }}">
-                                View Financials
-                            </a>
-                        </td>
+                            </td>
 
-                        <td>
-                            <a href="{{ url_for(
-                                'phase_analysis.detail',
-                                project_id=project.id
-                            ) }}">
-                                View Analysis
-                            </a>
-                        </td>
+                            <td>
 
-                    </tr>
+                                <div class="table-actions">
 
-                    {% else %}
+                                    <a
+                                        href="{{ url_for('progress.list_progress', project_id=project.id, phase_id=phase.phase_id) }}"
+                                        class="button button-secondary button-small"
+                                    >
+                                        Progress
+                                    </a>
 
-                    <tr>
-                        <td colspan="10">
-                            No phase data available.
-                        </td>
-                    </tr>
+                                    <a
+                                        href="{{ url_for('phase_finance.detail', project_id=project.id, phase_id=phase.phase_id) }}"
+                                        class="button button-secondary button-small"
+                                    >
+                                        Financials
+                                    </a>
+
+                                    <a
+                                        href="{{ url_for('phase_analysis.detail', project_id=project.id, phase_id=phase.phase_id) }}"
+                                        class="button button-secondary button-small"
+                                    >
+                                        Analysis
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
 
                     {% endfor %}
 
@@ -319,30 +459,171 @@
 
             </table>
 
-        </section>
+        </div>
 
-        <section>
+    {% else %}
 
-            <h3>Budget vs Actual Cost</h3>
+        <div class="empty-state">
 
-            <div class="chart-container">
+            <h3>No construction phases</h3>
 
-                <canvas
-                    id="budgetVsActualChart"
-                    data-phase-names='{{ phase_financials | map(attribute="phase_name") | list | tojson }}'
-                    data-allocated-budgets='{{ phase_financials | map(attribute="allocated_budget") | map("float") | list | tojson }}'
-                    data-actual-costs='{{ phase_financials | map(attribute="actual_cost") | map("float") | list | tojson }}'
-                ></canvas>
+            <p>
+                Construction phases have not yet been configured for this
+                project.
+            </p>
 
+        </div>
+
+    {% endif %}
+
+</section>
+
+
+<!-- BUDGET VS ACTUAL -->
+
+<section class="card">
+
+    <div class="card-header">
+
+        <div>
+            <h2 class="card-title">
+                Budget vs Actual Cost
+            </h2>
+
+            <p class="card-description">
+                Phase-level comparison of allocated construction budget
+                against recorded expenditure.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div
+        class="chart-container"
+        style="height: 380px;"
+    >
+
+        <canvas
+            id="budgetVsActualChart"
+            data-phase-names='{{ phase_financials | map(attribute="phase_name") | list | tojson }}'
+            data-allocated-budgets='{{ phase_financials | map(attribute="allocated_budget") | list | tojson }}'
+            data-actual-costs='{{ phase_financials | map(attribute="actual_cost") | list | tojson }}'
+        ></canvas>
+
+    </div>
+
+</section>
+
+
+<!-- EXPENSE ANALYSIS -->
+
+<section class="card">
+
+    <div class="card-header">
+
+        <div>
+            <h2 class="card-title">
+                Expense Analysis
+            </h2>
+
+            <p class="card-description">
+                Recorded project expenses and current financial position.
+            </p>
+        </div>
+
+        <a
+            href="{{ url_for('expenses.list_expenses', project_id=project.id) }}"
+            class="button button-secondary button-small"
+        >
+            View All Expenses
+        </a>
+
+    </div>
+
+
+    <div class="metric-grid">
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Expense Categories
             </div>
 
-        </section>
+            <div class="metric-value">
+                {{ expense_category_summary | length }}
+            </div>
 
-        <section>
+        </div>
 
-            <h3>Expense Category Summary</h3>
 
-            <table>
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Recorded Expense Entries
+            </div>
+
+            <div class="metric-value">
+                {{ expense_count }}
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Actual Project Cost
+            </div>
+
+            <div class="metric-value">
+                ₹{{ "{:,.2f}".format(financial_summary.actual_cost) }}
+            </div>
+
+        </div>
+
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Budget Variance
+            </div>
+
+            <div class="metric-value">
+                ₹{{ "{:,.2f}".format(financial_summary.budget_variance) }}
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- EXPENSE CATEGORY SUMMARY -->
+
+<section class="card">
+
+    <div class="card-header">
+
+        <div>
+            <h2 class="card-title">
+                Expense Category Summary
+            </h2>
+
+            <p class="card-description">
+                Project expenditure grouped by expense category.
+            </p>
+        </div>
+
+    </div>
+
+
+    {% if expense_category_summary %}
+
+        <div class="table-wrapper">
+
+            <table class="data-table">
 
                 <thead>
                     <tr>
@@ -353,30 +634,21 @@
 
                 <tbody>
 
-                    {% for category, total in
-                        expense_category_summary.items()
-                    %}
+                    {% for category, total in expense_category_summary.items() %}
 
-                    <tr>
-                        <td>
-                            {{ category.replace(
-                                '_',
-                                ' '
-                            ).title() }}
-                        </td>
+                        <tr>
 
-                        <td>
-                            ₹{{ "{:,.2f}".format(total) }}
-                        </td>
-                    </tr>
+                            <td>
+                                <strong>
+                                    {{ category }}
+                                </strong>
+                            </td>
 
-                    {% else %}
+                            <td>
+                                ₹{{ "{:,.2f}".format(total) }}
+                            </td>
 
-                    <tr>
-                        <td colspan="2">
-                            No expense data available.
-                        </td>
-                    </tr>
+                        </tr>
 
                     {% endfor %}
 
@@ -384,13 +656,49 @@
 
             </table>
 
-        </section>
+        </div>
 
-        <section>
+    {% else %}
 
-            <h3>Monthly Expense Trend</h3>
+        <div class="empty-state">
 
-            <table>
+            <h3>No expense categories</h3>
+
+            <p>
+                No project expenses have been recorded yet.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+
+<!-- MONTHLY EXPENSE TREND -->
+
+<section class="card">
+
+    <div class="card-header">
+
+        <div>
+            <h2 class="card-title">
+                Monthly Expense Trend
+            </h2>
+
+            <p class="card-description">
+                Monthly project expenditure based on recorded expense dates.
+            </p>
+        </div>
+
+    </div>
+
+
+    {% if monthly_expense_summary %}
+
+        <div class="table-wrapper">
+
+            <table class="data-table">
 
                 <thead>
                     <tr>
@@ -401,27 +709,21 @@
 
                 <tbody>
 
-                    {% for month in monthly_expense_summary %}
+                    {% for item in monthly_expense_summary %}
 
-                    <tr>
-                        <td>
-                            {{ month.month }}
-                        </td>
+                        <tr>
 
-                        <td>
-                            ₹{{ "{:,.2f}".format(
-                                month.total
-                            ) }}
-                        </td>
-                    </tr>
+                            <td>
+                                <strong>
+                                    {{ item.month }}
+                                </strong>
+                            </td>
 
-                    {% else %}
+                            <td>
+                                ₹{{ "{:,.2f}".format(item.total) }}
+                            </td>
 
-                    <tr>
-                        <td colspan="2">
-                            No monthly expense data available.
-                        </td>
-                    </tr>
+                        </tr>
 
                     {% endfor %}
 
@@ -429,70 +731,89 @@
 
             </table>
 
-        </section>
+        </div>
 
-        <section>
+    {% else %}
 
-            <h3>Project Modules</h3>
+        <div class="empty-state">
 
-            <ul>
+            <h3>No monthly expense data</h3>
 
-                <li>
-                    <a href="{{ url_for(
-                        'phases.list_phases',
-                        project_id=project.id
-                    ) }}">
-                        Project Phases
-                    </a>
-                </li>
+            <p>
+                Monthly expense information will appear after expenses
+                are recorded.
+            </p>
 
-                <li>
-                    <a href="{{ url_for(
-                        'expenses.list_expenses',
-                        project_id=project.id
-                    ) }}">
-                        Project Expenses
-                    </a>
-                </li>
+        </div>
 
-                <li>
-                    <a href="{{ url_for(
-                        'phase_analysis.detail',
-                        project_id=project.id
-                    ) }}">
-                        Phase Analysis
-                    </a>
-                </li>
+    {% endif %}
 
-            </ul>
+</section>
 
-        </section>
 
-        <section>
+<!-- PROJECT OPERATIONS -->
 
-            <a href="{{ url_for(
-                'projects.list_projects'
-            ) }}">
-                ← Back to Projects
+<section class="card">
+
+    <div class="card-header">
+
+        <div>
+            <h2 class="card-title">
+                Project Operations
+            </h2>
+
+            <p class="card-description">
+                Access project management and construction tracking modules.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="button-group">
+
+        {% if current_user.role in ["admin", "project_manager"] %}
+
+            <a
+                href="{{ url_for('phases.list_phases', project_id=project.id) }}"
+                class="button button-primary"
+            >
+                Manage Phases
             </a>
 
-        </section>
+        {% endif %}
 
-    </main>
 
-    <script
-        src="{{ url_for(
-            'static',
-            filename='vendor/chart.umd.min.js'
-        ) }}"
-    ></script>
+        <a
+            href="{{ url_for('expenses.list_expenses', project_id=project.id) }}"
+            class="button button-secondary"
+        >
+            Manage Expenses
+        </a>
 
-    <script
-        src="{{ url_for(
-            'static',
-            filename='js/project_financials.js'
-        ) }}"
-    ></script>
 
-</body>
-</html>
+        <a
+            href="{{ url_for('projects.list_projects') }}"
+            class="button button-secondary"
+        >
+            All Projects
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script
+    src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"
+></script>
+
+<script
+    src="{{ url_for('static', filename='js/project_financials.js') }}"
+></script>
+
+{% endblock %}
