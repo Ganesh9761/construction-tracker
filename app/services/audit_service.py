@@ -32,7 +32,6 @@ def create_audit_log(
     )
 
     db.session.add(audit_log)
-    db.session.commit()
 
     return audit_log
 

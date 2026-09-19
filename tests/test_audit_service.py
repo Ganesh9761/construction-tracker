@@ -59,6 +59,8 @@ def test_create_audit_log(app, user):
         description="Created test project.",
     )
 
+    db.session.flush()
+
     assert audit_log.id is not None
     assert audit_log.user_id == user.id
     assert audit_log.action == "create"
